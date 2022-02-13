@@ -1,7 +1,6 @@
 import com.slack.api.bolt.App
-import com.slack.api.bolt.handler.builtin.{GlobalShortcutHandler, MessageShortcutHandler, SlashCommandHandler}
+import com.slack.api.bolt.handler.builtin.MessageShortcutHandler
 import com.slack.api.bolt.socket_mode.SocketModeApp
-import org.glassfish.grizzly.http.server.util.Globals
 
 object Main {
   def main(args: Array[String]): Unit = {
