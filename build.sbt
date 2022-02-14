@@ -8,6 +8,7 @@ libraryDependencies += "javax.websocket" % "javax.websocket-api" % "1.1"
 libraryDependencies += "org.glassfish.tyrus.bundles" % "tyrus-standalone-client" % "1.17"
 libraryDependencies += "com.nulab-inc" % "backlog4j" % "2.4.4"
 libraryDependencies += "org.scalatest" %% "scalatest-funsuite" % "3.2.11" % "test"
+libraryDependencies += "com.google.inject" % "guice" % "5.1.0"
 
 lazy val root = (project in file("."))
   .settings(
