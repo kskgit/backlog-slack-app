@@ -9,6 +9,7 @@ object Main {
     val messageShortcutHandler: MessageShortcutHandler = (req, ctx) => {
       println("message")
       println(req)
+      println(BacklogRepository.getUsers)
       ctx.ack()
     }
     app.messageShortcut("create-issue-to-backlog", messageShortcutHandler)
