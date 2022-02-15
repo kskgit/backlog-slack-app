@@ -7,7 +7,7 @@ import service.MessageShortcutHandleService
 
 import javax.inject.Inject
 
-case class EndPointImpl @Inject()(messageShortcutHandleService: MessageShortcutHandleService) extends EndPoint {
+case class EndPointSocketMode @Inject()(messageShortcutHandleService: MessageShortcutHandleService) extends EndPoint {
   override def startServer(): Unit = {
     val app = new App()
     app.messageShortcut("create-issue-to-backlog", messageShortcutHandleService.createIssueMessageShortcutHandler)
