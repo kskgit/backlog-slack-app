@@ -2,12 +2,12 @@ package service.impl
 
 import com.slack.api.bolt.handler.builtin.MessageShortcutHandler
 import repository.BacklogRepository
-import service.MessageShortcutHandleService
+import service.SlackEventHandleService
 
 import javax.inject.Inject
 
-case class MessageShortcutHandleServiceImpl @Inject()
-    (backlogRepository: BacklogRepository)() extends MessageShortcutHandleService {
+case class SlackEventHandleServiceImpl @Inject()
+    (backlogRepository: BacklogRepository)() extends SlackEventHandleService {
 
   override def createIssueMessageShortcutHandler: MessageShortcutHandler = (req, ctx) => {
     // TODO: DBからユーザーのプロジェクトを取得

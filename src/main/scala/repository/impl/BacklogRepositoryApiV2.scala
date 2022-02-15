@@ -7,6 +7,7 @@ import com.nulabinc.backlog4j.{BacklogClient, BacklogClientFactory, Issue}
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import repository.BacklogRepository
 
+// TODO: クラス名を再考する
 class BacklogRepositoryApiV2 extends BacklogRepository {
   private val configure: BacklogConfigure = new BacklogComConfigure(sys.env("BACKLOG_SPACE_ID")).apiKey(sys.env("BACKLOG_API_KEY"))
   private val backlog: BacklogClient = new BacklogClientFactory(configure).newClient

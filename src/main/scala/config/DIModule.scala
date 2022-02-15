@@ -5,12 +5,12 @@ import endpoint.EndPoint
 import endpoint.impl.EndPointSocketMode
 import repository.BacklogRepository
 import repository.impl.BacklogRepositoryApiV2
-import service.MessageShortcutHandleService
-import service.impl.MessageShortcutHandleServiceImpl
+import service.SlackEventHandleService
+import service.impl.SlackEventHandleServiceImpl
 
 class DIModule extends AbstractModule {
   override protected def configure(): Unit = {
-    bind(classOf[MessageShortcutHandleService]).to(classOf[MessageShortcutHandleServiceImpl])
+    bind(classOf[SlackEventHandleService]).to(classOf[SlackEventHandleServiceImpl])
     bind(classOf[BacklogRepository]).to(classOf[BacklogRepositoryApiV2])
     bind(classOf[EndPoint]).to(classOf[EndPointSocketMode])
   }
