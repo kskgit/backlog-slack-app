@@ -3,7 +3,7 @@ import com.nulabinc.backlog4j.api.option.CreateIssueParams
 import com.nulabinc.backlog4j.{ResponseList, User}
 import org.scalatest.funsuite.AnyFunSuite
 
-class BacklogRepositoryApiV2Spec extends AnyFunSuite {
+class BacklogRepositoryImplSpec extends AnyFunSuite {
   test("An empty Set should have size 0") {
 //    val createIssueParams: CreateIssueParams = new CreateIssueParams("260625", "タイトル", 1273155, PriorityType.Normal)
 //

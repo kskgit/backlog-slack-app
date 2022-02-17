@@ -15,11 +15,6 @@ case class SlackEventHandleServiceImpl @Inject()
     (backlogRepository: BacklogRepository)() extends SlackEventHandleService {
 
   override def createIssueMessageShortcutHandler: MessageShortcutHandler = (req, ctx) => {
-    // TODO: DBからユーザーのプロジェクトを取得
-    //  取得出来ればそれを設定したブロックを返す
-    //  取得不可であれば設定用のブロックを返す
-    // TODO: 課題タイプを選択してもらう
-    //  もしくは固定にする
     val request = ChatPostEphemeralRequest.builder()
       .channel(req.getPayload.getChannel.getId)
       .user(req.getPayload.getUser.getId)
@@ -43,6 +38,7 @@ case class SlackEventHandleServiceImpl @Inject()
         )
       )
       .build()
+    // TODO: 失敗した際のエラーメッセージをチャットに通知する
     val res = ctx.client().chatPostEphemeral(request)
     println(res)
     ctx.ack()
