@@ -10,6 +10,7 @@ libraryDependencies += "com.nulab-inc" % "backlog4j" % "2.4.4"
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.2.11" % Test
 libraryDependencies += "org.scalatestplus" %% "mockito-3-4" % "3.2.10.0" % "test"
 libraryDependencies += "com.google.inject" % "guice" % "5.1.0"
+libraryDependencies += "com.google.firebase" % "firebase-admin" % "8.1.0"
 
 lazy val root = (project in file("."))
   .settings(

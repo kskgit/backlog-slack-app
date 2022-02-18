@@ -38,9 +38,8 @@ case class SlackEventHandleServiceImpl @Inject()
         )
       )
       .build()
-    // TODO: 失敗した際のエラーメッセージをチャットに通知する
-    val res = ctx.client().chatPostEphemeral(request)
-    println(res)
+    // TODO: 失敗した際のエラーメッセージをチャットへ通知する
+    ctx.client().chatPostEphemeral(request)
     ctx.ack()
   }
 }
