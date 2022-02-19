@@ -2,6 +2,7 @@ package repository.impl
 
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import entity.BacklogAuthInfoEntity
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
 import org.mockito.Mockito.{times, verify}
 import org.scalatest.funsuite.AnyFunSuite
@@ -18,7 +19,6 @@ class BacklogRepositoryImplSpec extends AnyFunSuite with MockitoSugar  {
     backlogRepositoryImpl.createIssue(messageShortcutRequest, backlogAuthInfoEntity)
 
     verify(backlogClientInitializer, times(1)).initialize(backlogAuthInfoEntity)
-    // TODO: createIssueのパラメータをワイルドカードで出来ないか確認
-    //    verify(backlogClientInitializer.initialize(backlogAuthInfoEntity), times(1)).createIssue(ここ！！)
+    verify(backlogClientInitializer.initialize(backlogAuthInfoEntity), times(1)).createIssue(any())
   }
 }

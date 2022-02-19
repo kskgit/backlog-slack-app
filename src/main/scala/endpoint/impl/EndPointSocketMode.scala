@@ -14,8 +14,9 @@ case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandl
     config.setSigningSecret(sys.env("SLACK_SIGNING_SECRET"))
 
     val app = new App(config)
-    app.messageShortcut("create-issue-to-backlog", slackEventHandleService.createIssueMessageShortcutHandler)
-    app.blockAction("submit-issue-info", slackEventHandleService.submitIssueBlockActionHandler)
+    app.messageShortcut("accept-create-issue-request", slackEventHandleService.acceptCreateIssueRequest)
+    app.blockAction("registration-auth-info-to-store", slackEventHandleService.registrationAuthInfoToStore)
+    app.blockAction("registration-issue-to-backlog", slackEventHandleService.registrationIssueToBacklog)
 
     new SocketModeApp(app).start()
   }
