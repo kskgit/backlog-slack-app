@@ -1,7 +1,5 @@
 package repository.impl
 
-import com.nulabinc.backlog4j.Issue.PriorityType
-import com.nulabinc.backlog4j.api.option.CreateIssueParams
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import entity.BacklogAuthInfoEntity
 import org.mockito.Mockito

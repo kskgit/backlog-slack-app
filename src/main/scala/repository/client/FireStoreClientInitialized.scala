@@ -7,6 +7,7 @@ import com.google.firebase.{FirebaseApp, FirebaseOptions}
 
 import java.io.FileInputStream
 
+// TODO: クライアントのメソッドをラップしたメソッド作成
 case class FireStoreClientInitialized() {
 
   // TODO: コンパニオンオブジェクトの中に記載するか検討
