@@ -16,7 +16,7 @@ case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandl
     val app = new App(config)
     app.messageShortcut("accept-create-issue-request", slackEventHandleService.acceptCreateIssueRequest)
     app.blockAction("registration-auth-info-to-store", slackEventHandleService.registrationAuthInfoToStore)
-    app.blockAction("registration-issue-to-backlog", slackEventHandleService.registrationIssueToBacklog)
+    app.viewSubmission("registration-issue-to-backlog", slackEventHandleService.registrationIssueToBacklog)
 
     new SocketModeApp(app).start()
   }

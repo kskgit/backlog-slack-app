@@ -1,9 +1,9 @@
 package service
 
-import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHandler}
+import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHandler, ViewSubmissionHandler}
 
 trait SlackEventHandleService {
   def acceptCreateIssueRequest: MessageShortcutHandler
   def registrationAuthInfoToStore: BlockActionHandler
-  def registrationIssueToBacklog: BlockActionHandler
+  def registrationIssueToBacklog: ViewSubmissionHandler
 }

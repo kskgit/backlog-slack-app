@@ -11,5 +11,3 @@ case class BacklogClientInitializer() {
     new BacklogClientFactory(configure).newClient
   }
 }
-//sys.env("BACKLOG_SPACE_ID")
-//sys.env("BACKLOG_API_KEY")
