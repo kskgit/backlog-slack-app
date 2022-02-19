@@ -1,6 +1,6 @@
 package service.impl
 
-import com.slack.api.bolt.handler.builtin.MessageShortcutHandler
+import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHandler}
 import repository.{BacklogRepository, SlackRepository, StoreRepository}
 import service.SlackEventHandleService
 
@@ -17,5 +17,11 @@ case class SlackEventHandleServiceImpl @Inject()
       slackRepository.postInputIssueInfoRequest(req,ctx)
     }
     // TODO: 課題登録が失敗した際のエラーメッセージをチャットへ通知する
+  }
+
+  override def submitIssueBlockActionHandler: BlockActionHandler = (req, ctx) => {
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
+    // TODO: 認証情報が無い場合のエラー処理
+    slackRepository.registrationIssueToBacklog(req,ctx)
   }
 }

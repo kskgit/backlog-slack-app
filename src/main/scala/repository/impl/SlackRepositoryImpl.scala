@@ -1,6 +1,6 @@
 package repository.impl
 
-import com.slack.api.bolt.handler.builtin.MessageShortcutHandler
+import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHandler}
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import com.slack.api.methods.request.chat.ChatPostEphemeralRequest
 import com.slack.api.model.block.Blocks.{asBlocks, divider, section}
@@ -27,7 +27,7 @@ class SlackRepositoryImpl extends SlackRepository {
           section(s => s.text(markdownText("*Static Select:*")).accessory(
             staticSelect(
               ss =>
-                ss.actionId("block-multi-static-select-action") // TODO: 変更する
+                ss.actionId("submit-issue-info") // TODO: 変更する
                   .options(
                     asOptions( // TODO: Backlogから取得したユーザーのプロジェクト一覧を仕込む
                       option(option => option.text(PlainTextObject.builder().text("プロジェクト1").build())),
@@ -47,4 +47,9 @@ class SlackRepositoryImpl extends SlackRepository {
     ctx.ack()
   }
 
+  override def registrationIssueToBacklog: BlockActionHandler = (req, ctx) => {
+    // TODO: 実装
+    println("ブロックアクション到達")
+    ctx.ack()
+  }
 }

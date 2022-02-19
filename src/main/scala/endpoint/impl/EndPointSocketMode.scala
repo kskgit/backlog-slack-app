@@ -15,6 +15,8 @@ case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandl
 
     val app = new App(config)
     app.messageShortcut("create-issue-to-backlog", slackEventHandleService.createIssueMessageShortcutHandler)
+    app.blockAction("submit-issue-info", slackEventHandleService.submitIssueBlockActionHandler)
+
     new SocketModeApp(app).start()
   }
 }
