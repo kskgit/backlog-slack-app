@@ -1,15 +1,15 @@
 package repository.impl
 
-import entity.BacklogInfoEntity
+import entity.BacklogAuthInfoEntity
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.mockito.MockitoSugar
-import repository.client.FireStoreClient
+import repository.client.FireStoreClientInitialized
 
 class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
   test("getBacklogKey テスト") {
-    val result = FireStoreRepositoryImpl(FireStoreClient()).getBacklogKey("channelId","userId")
+    val result = FireStoreRepositoryImpl(FireStoreClientInitialized()).getBacklogAuthInfo("channelId","userId")
     // TODO: テストコード見直し
-    val expect = BacklogInfoEntity.apply("test", "test")
+    val expect = BacklogAuthInfoEntity.apply("test", "test")
     assert(result == expect)
   }
 

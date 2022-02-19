@@ -8,6 +8,8 @@ import com.google.firebase.{FirebaseApp, FirebaseOptions}
 import java.io.FileInputStream
 
 case class FireStoreClientInitialized() {
+
+  // TODO: コンパニオンオブジェクトの中に記載するか検討
   private val serviceAccount = new FileInputStream("/Users/ksk/Downloads/slack-to-backlog-933bd-firebase-adminsdk-t3lgn-6a2b4af488.json")
   private val credentials = GoogleCredentials.fromStream(serviceAccount)
   private val options = FirebaseOptions.builder().setCredentials(credentials).build

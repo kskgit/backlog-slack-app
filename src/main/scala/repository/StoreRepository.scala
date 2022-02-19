@@ -1,8 +1,8 @@
 package repository
 
-import entity.BacklogInfoEntity
+import entity.BacklogAuthInfoEntity
 
 trait StoreRepository {
-  def getBacklogKey(channelId :String, userId :String):BacklogInfoEntity
-  def setBacklogKey(channelId :String, userId :String, spaceId:String, apiKey:String):Unit
+  def getBacklogAuthInfo(channelId :String, userId :String):BacklogAuthInfoEntity
+  def setBacklogAuthInfo(channelId :String, userId :String, spaceId:String, apiKey:String):Unit
 }
