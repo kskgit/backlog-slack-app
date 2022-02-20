@@ -7,5 +7,4 @@ import entity.BacklogAuthInfoEntity
 trait BacklogRepository {
   def createIssue: (ViewSubmissionRequest, BacklogAuthInfoEntity) => String
   def getProjects: BacklogAuthInfoEntity => ResponseList[Project]
-//  def getIssue:Int => Issue
 }

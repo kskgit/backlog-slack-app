@@ -4,6 +4,6 @@ import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHa
 
 trait SlackEventHandleService {
   def acceptCreateIssueRequest: MessageShortcutHandler
-  def registrationAuthInfoToStore: BlockActionHandler
+  def registrationAuthInfoToStore: ViewSubmissionHandler
   def registrationIssueToBacklog: ViewSubmissionHandler
 }

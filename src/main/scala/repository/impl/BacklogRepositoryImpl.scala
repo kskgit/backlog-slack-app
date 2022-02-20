@@ -2,7 +2,7 @@ package repository.impl
 
 import com.nulabinc.backlog4j.Issue.PriorityType
 import com.nulabinc.backlog4j.api.option.CreateIssueParams
-import com.nulabinc.backlog4j.{Issue, Project, ResponseList}
+import com.nulabinc.backlog4j.{Project, ResponseList}
 import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import entity.BacklogAuthInfoEntity
 import repository.BacklogRepository
@@ -22,10 +22,11 @@ case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitiali
   }
 
   override def createIssue: (ViewSubmissionRequest, BacklogAuthInfoEntity) => String
-    = (r: ViewSubmissionRequest, authInfo: BacklogAuthInfoEntity)
-      => {val issue = backlogClient.initialize(authInfo).createIssue(createIssueParams(r))
-      backlogClient.initialize(authInfo).getIssueUrl(issue)
-  }
+    = (r: ViewSubmissionRequest, authInfo: BacklogAuthInfoEntity) => {
+          val backlogClientAuthed = backlogClient.initialize(authInfo)
+          val issue = backlogClientAuthed.createIssue(createIssueParams(r))
+          backlogClientAuthed.getIssueUrl(issue)
+      }
 
   override def getProjects: BacklogAuthInfoEntity => ResponseList[Project] = (authInfo: BacklogAuthInfoEntity)
     => backlogClient.initialize(authInfo).getProjects
