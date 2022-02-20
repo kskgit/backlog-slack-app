@@ -30,6 +30,7 @@ case class SlackEventHandleServiceImpl @Inject()
       // TODO: 認証情報を入力するViewを返す
     } else {
       val projects = backlogRepository.getProjects(authInfoEntity)
+      // JavaのArrayListを使用する必要あり
       val options = new java.util.ArrayList[OptionObject]()
       projects.forEach(p=> options.add(OptionObject.builder()
         .value(p.getId.toString)
