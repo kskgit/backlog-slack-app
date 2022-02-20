@@ -1,5 +1,6 @@
 package repository.impl
 
+import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import entity.BacklogAuthInfoEntity
 import repository.StoreRepository
 import repository.client.FireStoreClientInitialized
@@ -28,7 +29,9 @@ case class FireStoreRepositoryImpl @Inject() (fireStoreClient: FireStoreClientIn
     BacklogAuthInfoEntity.apply(m.getOrElse("spaceId", ""), m.getOrElse("apiKey", ""))
   }
 
-  override def setBacklogAuthInfo(channelId :String, userId: String, spaceId: String, apiKey: String): Unit = {
+  override def setBacklogAuthInfo(channelId :String, userId: String, req: ViewSubmissionRequest): Unit = {
+    val spaceId = req.getPayload.getView.getState.getValues.get("apiBlock").get("apiAction").getValue
+    val apiKey = req.getPayload.getView.getState.getValues.get("spaceBlock").get("spaceAction").getValue
     // JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {

@@ -17,7 +17,7 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
     val fireStoreClient = FireStoreClientInitialized()
     val fireStoreRepositoryImpl = FireStoreRepositoryImpl(fireStoreClient)
     // TODO: テストコード見直し
-    fireStoreRepositoryImpl.setBacklogAuthInfo("channelId","userId","spaceId","apiKey")
+//    fireStoreRepositoryImpl.setBacklogAuthInfo("channelId","userId","spaceId","apiKey")
 //    val expect = BacklogAuthInfoEntity.apply("test", "test")
 //    assert(result == expect)
   }

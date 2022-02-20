@@ -21,62 +21,88 @@ import javax.inject.Inject
 // TODO: 最初だけ"We had some trouble connecting. Try again?" が表示される
 case class SlackEventHandleServiceImpl @Inject()
     (backlogRepository: BacklogRepository, storeRepository:StoreRepository)() extends SlackEventHandleService {
+
   override def acceptCreateIssueRequest: MessageShortcutHandler = (req, ctx) => {
     // TODO: FireStoreから認証情報を取得
     val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
-//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
 //    val backlogAuthInfo = "authInfo"
-    val backlogAuthInfo = null
+//    val backlogAuthInfo = null
 
     if (backlogAuthInfo == null) {
       // TODO: 認証情報を入力するViewを返す
-      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => createInputAuthInfoViewBuilder(r, req))
+      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputAuthInfoViewBuilder(r, req))
       ctx.ack()
     } else {
-      val projects = backlogRepository.getProjects(authInfoEntity)
-      // JavaのArrayListを使用する必要あり
-      val options = new java.util.ArrayList[OptionObject]()
-      projects.forEach(p=> options.add(OptionObject.builder()
-        .value(p.getId.toString)
-        .text(PlainTextObject.builder().text(p.getName).build())
-        .build())
-      )
-      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => createInputIssueInfoViewBuilder(r, req, options))
+      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputIssueInfoViewBuilder(r, req, getProjectOptions(authInfoEntity)))
       ctx.ack()
     }
     // TODO: 課題登録が失敗した際のエラーメッセージをチャットへ通知する
   }
 
-  // TODO: 課題タイプをどうするか確認する
-  private def createInputIssueInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest, options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
-    r.triggerId(req.getPayload.getTriggerId)
-      .view(view(v=>
-        v
-          .`type`("modal")
-          .callbackId("registration-issue-to-backlog")
-          .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
-          .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
-          .submit(viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) => submit.`type`("plain_text").text("送信").emoji(true)))
-          .blocks(
-            asBlocks(
-              input(i => i.element(staticSelect(
-                ss =>
-                  ss.actionId("acId").options(
-                    options
-                  ).placeholder(PlainTextObject.builder().text("プロジェクトを選択してください").build())
-              )).label(PlainTextObject.builder().text("プロジェクト").build()).blockId("pjId"))
-              ,input(
-                i => i.element(plainTextInput(
-                  pt =>
-                    pt.actionId("acId").placeholder(
-                      PlainTextObject.builder().text("タイトルを入力してください").build())
-                )).label(PlainTextObject.builder().text("タイトル").build()).blockId("ipId"))
-            )
-          )
-      ))
+
+  override def registrationAuthInfoToStore: ViewSubmissionHandler = (req, ctx) => {
+//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
+    // TODO: 登録する前に以下で認証情報の確認
+    //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
+    // TODO: FireStoreへ登録
+    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
+    def getUser = req.getPayload.getUser
+    storeRepository.setBacklogAuthInfo(getUser.getTeamId, getUser.getId, req)
+    val response = ViewSubmissionResponse.builder()
+      .responseAction("update")
+      .view(getInputIssueInfoView(getProjectOptions(authInfoEntity)))
+      .build()
+    ctx.ack(response)
   }
 
-  private def createInputAuthInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest): ViewsOpenRequestBuilder = {
+  override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) => {
+//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getResponseUrls, req.getPayload.getUser.getId)
+    // TODO: 認証情報が無い場合のエラー処理
+    // TODO: 認証情報をFireStoreからの取得へ変更
+    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
+    val url = backlogRepository.createIssue(req,authInfoEntity)
+    // TODO: 登録失敗した場合のエラー処理
+    val response = ViewSubmissionResponse.builder()
+      .responseAction("update")
+      .view(getCreatedIssueInfoView(url))
+      .build();
+    ctx.ack(response)
+  }
+
+  // TODO: 課題タイプをどうするか確認する
+  private def getInputIssueInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest, options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
+    r.triggerId(req.getPayload.getTriggerId)
+      .view(getInputIssueInfoView(options))
+  }
+
+  private def getInputIssueInfoView(options: util.List[OptionObject]): View = {
+    View
+      .builder()
+      .`type`("modal")
+      .callbackId("registration-issue-to-backlog")
+      .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
+      .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
+      .submit(viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) => submit.`type`("plain_text").text("送信").emoji(true)))
+      .blocks(
+        asBlocks(
+          input(i => i.element(staticSelect(
+            ss =>
+              ss.actionId("acId").options(
+                options
+              ).placeholder(PlainTextObject.builder().text("プロジェクトを選択してください").build())
+          )).label(PlainTextObject.builder().text("プロジェクト").build()).blockId("pjId"))
+          ,input(
+            i => i.element(plainTextInput(
+              pt =>
+                pt.actionId("acId").placeholder(
+                  PlainTextObject.builder().text("タイトルを入力してください").build())
+            )).label(PlainTextObject.builder().text("タイトル").build()).blockId("ipId"))
+        )
+      ).build()
+  }
+
+  private def getInputAuthInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest): ViewsOpenRequestBuilder = {
     r.triggerId(req.getPayload.getTriggerId)
       .view(view(v=>
         v
@@ -104,29 +130,7 @@ case class SlackEventHandleServiceImpl @Inject()
       ))
   }
 
-  override def registrationAuthInfoToStore: ViewSubmissionHandler = (req, ctx) => {
-//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
-    // TODO: 登録する前に以下で認証情報の確認
-    //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
-    // TODO: FireStoreへ登録
-    ctx.ack()
-  }
-
-  override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) => {
-//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getResponseUrls, req.getPayload.getUser.getId)
-    // TODO: 認証情報が無い場合のエラー処理
-    // TODO: 認証情報をFireStoreからの取得へ変更
-    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
-    val url = backlogRepository.createIssue(req,authInfoEntity)
-    // TODO: 登録失敗した場合のエラー処理
-    val response = ViewSubmissionResponse.builder()
-      .responseAction("update")
-      .view(createCreatedIssueInfoView(url))
-      .build();
-    ctx.ack(response)
-  }
-
-  private def createCreatedIssueInfoView(url:String) :View = {
+  private def getCreatedIssueInfoView(url:String) :View = {
     View
       .builder()
       .`type`("modal")
@@ -139,5 +143,16 @@ case class SlackEventHandleServiceImpl @Inject()
       ).build()
   }
 
+  private def getProjectOptions(authInfoEntity:BacklogAuthInfoEntity): util.ArrayList[OptionObject] = {
+    val projects = backlogRepository.getProjects(authInfoEntity)
+    // BuildKitに渡すために、JavaのArrayListを使用する必要あり
+    val options = new java.util.ArrayList[OptionObject]()
+    projects.forEach(p=> options.add(OptionObject.builder()
+      .value(p.getId.toString)
+      .text(PlainTextObject.builder().text(p.getName).build())
+      .build())
+    )
+    options
+  }
  // TODO: 認証情報が無い場合のユーザへのエラーメッセージ
 }
