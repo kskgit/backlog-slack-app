@@ -1,6 +1,6 @@
 package repository.impl
 
-import com.slack.api.bolt.request.builtin.{MessageShortcutRequest, ViewSubmissionRequest}
+import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import entity.BacklogAuthInfoEntity
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito

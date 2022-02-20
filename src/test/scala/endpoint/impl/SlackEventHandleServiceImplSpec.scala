@@ -1,5 +1,6 @@
 package endpoint.impl
 
+import com.nulabinc.backlog4j.ResponseList
 import com.slack.api.bolt.context.builtin.MessageShortcutContext
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import com.slack.api.methods.request.chat.ChatPostEphemeralRequest
@@ -45,6 +46,7 @@ class SlackEventHandleServiceImplSpec extends AnyFunSuite with MockitoSugar {
       )
     // SlackEventHandleServiceImpl生成
     val backlogRepository = mock[BacklogRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
+//    when(backlogRepository.getProjects(mock[BacklogAuthInfoEntity])) thenReturn()
     val storeRepository = mock[FireStoreRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
     when(storeRepository.getBacklogAuthInfo(
       req.getPayload.getChannel.getId, req.getPayload.getUser.getId)) thenReturn(BacklogAuthInfoEntity("spaceId", "apiKey"))
