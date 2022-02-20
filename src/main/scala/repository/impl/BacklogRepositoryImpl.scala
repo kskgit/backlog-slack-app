@@ -21,9 +21,11 @@ case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitiali
     )
   }
 
-  override def createIssue: (ViewSubmissionRequest, BacklogAuthInfoEntity) => Issue
+  override def createIssue: (ViewSubmissionRequest, BacklogAuthInfoEntity) => String
     = (r: ViewSubmissionRequest, authInfo: BacklogAuthInfoEntity)
-      => backlogClient.initialize(authInfo).createIssue(createIssueParams(r))
+      => {val issue = backlogClient.initialize(authInfo).createIssue(createIssueParams(r))
+      backlogClient.initialize(authInfo).getIssueUrl(issue)
+  }
 
   override def getProjects: BacklogAuthInfoEntity => ResponseList[Project] = (authInfo: BacklogAuthInfoEntity)
     => backlogClient.initialize(authInfo).getProjects

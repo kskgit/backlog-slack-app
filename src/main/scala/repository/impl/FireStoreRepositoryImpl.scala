@@ -1,6 +1,5 @@
 package repository.impl
 
-import com.google.firebase.cloud.FirestoreClient
 import entity.BacklogAuthInfoEntity
 import repository.StoreRepository
 import repository.client.FireStoreClientInitialized
