@@ -12,6 +12,7 @@ import javax.inject.Inject
 
 case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitializer) extends BacklogRepository {
 
+  // TODO: ViewSubmissionRequest を受け取る場合storeRepositoryと平仄を合わせる
   private def createIssueParams: ViewSubmissionRequest => CreateIssueParams = (req: ViewSubmissionRequest) => {
     new CreateIssueParams(
       req.getPayload.getView.getState.getValues.get("pjId").get("acId").getSelectedOption.getValue,

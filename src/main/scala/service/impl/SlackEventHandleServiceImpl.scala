@@ -3,6 +3,7 @@ package service.impl
 import com.slack.api.app_backend.views.response.ViewSubmissionResponse
 import com.slack.api.bolt.handler.builtin.{MessageShortcutHandler, ViewSubmissionHandler}
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
+import com.slack.api.methods.request.chat.ChatGetPermalinkRequest
 import com.slack.api.methods.request.views.ViewsOpenRequest.ViewsOpenRequestBuilder
 import com.slack.api.model.block.Blocks.{asBlocks, input, section}
 import com.slack.api.model.block.composition.BlockCompositions.markdownText
@@ -17,26 +18,28 @@ import service.SlackEventHandleService
 import java.util
 import javax.inject.Inject
 
-
+// TODO: requestはそれぞれのイベントに依存するため、そこから値を取り出す処理はここで実装に統一
 // TODO: 最初だけ"We had some trouble connecting. Try again?" が表示される
 case class SlackEventHandleServiceImpl @Inject()
     (backlogRepository: BacklogRepository, storeRepository:StoreRepository)() extends SlackEventHandleService {
 
   override def acceptCreateIssueRequest: MessageShortcutHandler = (req, ctx) => {
     // TODO: FireStoreから認証情報を取得
-    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
-    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
-//    val backlogAuthInfo = "authInfo"
-//    val backlogAuthInfo = null
+    // 会話のURLをStoreに保存
+    val permalink = ctx.client().chatGetPermalink(
+      ChatGetPermalinkRequest.builder().channel(req.getPayload.getTeam.getId).messageTs(req.getPayload.getMessageTs).build()
+    ).getPermalink
 
-    if (backlogAuthInfo == null) {
-      // TODO: 認証情報を入力するViewを返す
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
+    if (backlogAuthInfo.apiKey == "" || backlogAuthInfo.spaceId == "") {
       ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputAuthInfoViewBuilder(r, req))
-      ctx.ack()
     } else {
-      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputIssueInfoViewBuilder(r, req, getProjectOptions(authInfoEntity)))
-      ctx.ack()
+      ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => {
+        getInputIssueInfoViewBuilder(r, req, getProjectOptions(backlogAuthInfo))
+      })
     }
+    storeRepository.createMostRecentMessageLink(req.getPayload.getTeam.getId, req.getPayload.getUser.getId, permalink)
+    ctx.ack()
     // TODO: 課題登録が失敗した際のエラーメッセージをチャットへ通知する
   }
 
@@ -48,7 +51,7 @@ case class SlackEventHandleServiceImpl @Inject()
     // TODO: FireStoreへ登録
     val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
     def getUser = req.getPayload.getUser
-    storeRepository.setBacklogAuthInfo(getUser.getTeamId, getUser.getId, req)
+    storeRepository.createBacklogAuthInfo(getUser.getTeamId, getUser.getId, req)
     val response = ViewSubmissionResponse.builder()
       .responseAction("update")
       .view(getInputIssueInfoView(getProjectOptions(authInfoEntity)))
@@ -71,7 +74,8 @@ case class SlackEventHandleServiceImpl @Inject()
   }
 
   // TODO: 課題タイプをどうするか確認する
-  private def getInputIssueInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest, options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
+  private def getInputIssueInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest
+                                           , options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
     r.triggerId(req.getPayload.getTriggerId)
       .view(getInputIssueInfoView(options))
   }
