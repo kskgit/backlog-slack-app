@@ -3,7 +3,6 @@ package repository.impl
 import com.nulabinc.backlog4j.Issue.PriorityType
 import com.nulabinc.backlog4j.api.option.CreateIssueParams
 import com.nulabinc.backlog4j.{Project, ResponseList}
-import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import entity.BacklogAuthInfoEntity
 import repository.BacklogRepository
 import repository.client.BacklogClientInitializer
@@ -13,19 +12,20 @@ import javax.inject.Inject
 case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitializer) extends BacklogRepository {
 
   // TODO: ViewSubmissionRequest を受け取る場合storeRepositoryと平仄を合わせる
-  private def createIssueParams: ViewSubmissionRequest => CreateIssueParams = (req: ViewSubmissionRequest) => {
+  override def getCreateIssueParams: (String, String, Int, String) => CreateIssueParams
+    = (projectId, issueTitle, issueTypeId, messageLink) => {
     new CreateIssueParams(
-      req.getPayload.getView.getState.getValues.get("pjId").get("acId").getSelectedOption.getValue,
-      req.getPayload.getView.getState.getValues.get("ipId").get("acId").getValue
-      ,1273155 // TODO: issueTypeを検討する
+      projectId,
+      issueTitle
+      ,issueTypeId
       ,PriorityType.Normal
-    )
+    ).description(messageLink)
   }
 
-  override def createIssue: (ViewSubmissionRequest, BacklogAuthInfoEntity) => String
-    = (r: ViewSubmissionRequest, authInfo: BacklogAuthInfoEntity) => {
+  override def createIssue: (CreateIssueParams, BacklogAuthInfoEntity) => String
+    = (createIssueParams: CreateIssueParams, authInfo: BacklogAuthInfoEntity) => {
           val backlogClientAuthed = backlogClient.initialize(authInfo)
-          val issue = backlogClientAuthed.createIssue(createIssueParams(r))
+          val issue = backlogClientAuthed.createIssue(createIssueParams)
           backlogClientAuthed.getIssueUrl(issue)
       }
 

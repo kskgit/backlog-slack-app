@@ -27,9 +27,10 @@ case class SlackEventHandleServiceImpl @Inject()
     // TODO: FireStoreから認証情報を取得
     // 会話のURLをStoreに保存
     val permalink = ctx.client().chatGetPermalink(
-      ChatGetPermalinkRequest.builder().channel(req.getPayload.getTeam.getId).messageTs(req.getPayload.getMessageTs).build()
+      ChatGetPermalinkRequest.builder().channel(req.getPayload.getChannel.getId).messageTs(req.getPayload.getMessageTs).build()
     ).getPermalink
 
+    storeRepository.createMostRecentMessageLink(req.getPayload.getTeam.getId, req.getPayload.getUser.getId, permalink)
     val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     if (backlogAuthInfo.apiKey == "" || backlogAuthInfo.spaceId == "") {
       ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputAuthInfoViewBuilder(r, req))
@@ -45,26 +46,31 @@ case class SlackEventHandleServiceImpl @Inject()
 
 
   override def registrationAuthInfoToStore: ViewSubmissionHandler = (req, ctx) => {
-//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     // TODO: 登録する前に以下で認証情報の確認
     //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
     // TODO: FireStoreへ登録
-    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
     def getUser = req.getPayload.getUser
     storeRepository.createBacklogAuthInfo(getUser.getTeamId, getUser.getId, req)
     val response = ViewSubmissionResponse.builder()
       .responseAction("update")
-      .view(getInputIssueInfoView(getProjectOptions(authInfoEntity)))
+      .view(getInputIssueInfoView(getProjectOptions(backlogAuthInfo)))
       .build()
     ctx.ack(response)
   }
 
   override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) => {
-//    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getResponseUrls, req.getPayload.getUser.getId)
+    val getViewValues = req.getPayload.getView.getState.getValues
+    val projectId = getViewValues.get("pjId").get("acId").getSelectedOption.getValue
+    val issueTitle = getViewValues.get("ipId").get("acId").getValue
+    // TODO: 固定値設定を修正する
+    val issueTypeId = 1273155
+    val messageLink = storeRepository.getMostRecentMessageLink(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
+    val createIssueParams = backlogRepository.getCreateIssueParams(projectId, issueTitle, issueTypeId, messageLink)
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     // TODO: 認証情報が無い場合のエラー処理
     // TODO: 認証情報をFireStoreからの取得へ変更
-    val authInfoEntity = BacklogAuthInfoEntity(sys.env("BACKLOG_SPACE_ID"), sys.env("BACKLOG_API_KEY"))
-    val url = backlogRepository.createIssue(req,authInfoEntity)
+    val url = backlogRepository.createIssue(createIssueParams,backlogAuthInfo)
     // TODO: 登録失敗した場合のエラー処理
     val response = ViewSubmissionResponse.builder()
       .responseAction("update")

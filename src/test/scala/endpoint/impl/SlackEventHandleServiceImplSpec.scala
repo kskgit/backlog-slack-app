@@ -1,6 +1,5 @@
 package endpoint.impl
 
-import com.nulabinc.backlog4j.ResponseList
 import com.slack.api.bolt.context.builtin.MessageShortcutContext
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
 import com.slack.api.methods.request.chat.ChatPostEphemeralRequest
@@ -65,5 +64,4 @@ class SlackEventHandleServiceImplSpec extends AnyFunSuite with MockitoSugar {
       req.getPayload.getChannel.getId, req.getPayload.getUser.getId)
     verify(ctx, times(1)).ack
   }
-
 }

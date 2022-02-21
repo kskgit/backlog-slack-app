@@ -1,6 +1,6 @@
 package repository
 
-import com.slack.api.bolt.request.builtin.{MessageShortcutRequest, ViewSubmissionRequest}
+import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
 import entity.BacklogAuthInfoEntity
 
 trait StoreRepository {
