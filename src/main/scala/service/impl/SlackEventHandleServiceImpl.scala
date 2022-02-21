@@ -1,12 +1,13 @@
 package service.impl
 
 import com.slack.api.app_backend.views.response.ViewSubmissionResponse
-import com.slack.api.bolt.handler.builtin.{MessageShortcutHandler, ViewSubmissionHandler}
-import com.slack.api.bolt.request.builtin.MessageShortcutRequest
+import com.slack.api.bolt.handler.builtin.{BlockActionHandler, MessageShortcutHandler, ViewSubmissionHandler}
+import com.slack.api.bolt.request.builtin.{BlockActionRequest, MessageShortcutRequest}
 import com.slack.api.methods.request.chat.ChatGetPermalinkRequest
 import com.slack.api.methods.request.views.ViewsOpenRequest.ViewsOpenRequestBuilder
+import com.slack.api.methods.request.views.ViewsUpdateRequest.ViewsUpdateRequestBuilder
 import com.slack.api.model.block.Blocks.{asBlocks, input, section}
-import com.slack.api.model.block.composition.BlockCompositions.markdownText
+import com.slack.api.model.block.composition.BlockCompositions.{asOptions, markdownText}
 import com.slack.api.model.block.composition.{OptionObject, PlainTextObject}
 import com.slack.api.model.block.element.BlockElements.{plainTextInput, staticSelect}
 import com.slack.api.model.view.Views.{view, viewClose, viewSubmit, viewTitle}
@@ -36,14 +37,22 @@ case class SlackEventHandleServiceImpl @Inject()
       ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => getInputAuthInfoViewBuilder(r, req))
     } else {
       ctx.client().viewsOpen((r:ViewsOpenRequestBuilder) => {
-        getInputIssueInfoViewBuilder(r, req, getProjectOptions(backlogAuthInfo))
+        getSelectProjectViewBuilder(r, req, getProjectOptions(backlogAuthInfo))
       })
     }
     storeRepository.createMostRecentMessageLink(req.getPayload.getTeam.getId, req.getPayload.getUser.getId, permalink)
     ctx.ack()
     // TODO: 課題登録が失敗した際のエラーメッセージをチャットへ通知する
   }
-
+  override def postIssueInfoReqToSlack: BlockActionHandler = (req, ctx) => {
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
+    val projectId = req.getPayload.getView.getState.getValues.get("pjBk").get("post-issue-info-req-to-slack").getSelectedOption.getValue
+    ctx.client().viewsUpdate((r:ViewsUpdateRequestBuilder) => {
+      // TODO: 課題種別一覧を仕込む
+      getInputIssueInfoViewBuilder(r,req,getIssueTypes(backlogAuthInfo, projectId))
+    })
+    ctx.ack()
+  }
 
   override def registrationAuthInfoToStore: ViewSubmissionHandler = (req, ctx) => {
     val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
@@ -63,10 +72,13 @@ case class SlackEventHandleServiceImpl @Inject()
     val getViewValues = req.getPayload.getView.getState.getValues
     val projectId = getViewValues.get("pjId").get("acId").getSelectedOption.getValue
     val issueTitle = getViewValues.get("ipId").get("acId").getValue
-    // TODO: 固定値設定を修正する
-    val issueTypeId = 1273155
+
+    val map = projectId.split(",").map(_.split(":"))
+      .map { case Array(k, v) => (k, v)}.toMap
+
     val messageLink = storeRepository.getMostRecentMessageLink(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
-    val createIssueParams = backlogRepository.getCreateIssueParams(projectId, issueTitle, issueTypeId, messageLink)
+
+    val createIssueParams = backlogRepository.getCreateIssueParams(map("projectId"), issueTitle, map("issueTypeId").toInt, messageLink)
     val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     // TODO: 認証情報が無い場合のエラー処理
     // TODO: 認証情報をFireStoreからの取得へ変更
@@ -80,10 +92,9 @@ case class SlackEventHandleServiceImpl @Inject()
   }
 
   // TODO: 課題タイプをどうするか確認する
-  private def getInputIssueInfoViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest
-                                           , options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
-    r.triggerId(req.getPayload.getTriggerId)
-      .view(getInputIssueInfoView(options))
+  private def getInputIssueInfoViewBuilder(r:ViewsUpdateRequestBuilder, req: BlockActionRequest
+                                           , options: util.List[OptionObject]): ViewsUpdateRequestBuilder = {
+    r.view(getInputIssueInfoView(options)).viewId(req.getPayload.getView.getId)
   }
 
   private def getInputIssueInfoView(options: util.List[OptionObject]): View = {
@@ -96,18 +107,39 @@ case class SlackEventHandleServiceImpl @Inject()
       .submit(viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) => submit.`type`("plain_text").text("送信").emoji(true)))
       .blocks(
         asBlocks(
+          // TODO: これが課題種別にすり替わる
           input(i => i.element(staticSelect(
             ss =>
               ss.actionId("acId").options(
                 options
-              ).placeholder(PlainTextObject.builder().text("プロジェクトを選択してください").build())
-          )).label(PlainTextObject.builder().text("プロジェクト").build()).blockId("pjId"))
+              ).placeholder(PlainTextObject.builder().text("課題種別を選択してください").build())
+          )).label(PlainTextObject.builder().text("課題種別").build()).blockId("pjId"))
           ,input(
             i => i.element(plainTextInput(
               pt =>
                 pt.actionId("acId").placeholder(
                   PlainTextObject.builder().text("タイトルを入力してください").build())
             )).label(PlainTextObject.builder().text("タイトル").build()).blockId("ipId"))
+        )
+      ).build()
+  }
+  private def getSelectProjectViewBuilder(r:ViewsOpenRequestBuilder, req: MessageShortcutRequest
+                                           , options: util.List[OptionObject]): ViewsOpenRequestBuilder = {
+    r.triggerId(req.getPayload.getTriggerId)
+      .view(getSelectProjectView(options))
+  }
+  private def getSelectProjectView(options: util.List[OptionObject]): View = {
+    View
+      .builder()
+      .`type`("modal")
+      .callbackId("post-issue-info-req-to-slack")
+      .title(viewTitle(vt => vt.`type`("plain_text").text("プロジェクトを選択")))
+      .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
+      .blocks(
+        asBlocks(
+          section(s=>s.accessory(
+            staticSelect(s=>s.actionId("post-issue-info-req-to-slack").options(options))
+          ).text(PlainTextObject.builder().text("プロジェクトを選択してください").build()).blockId("pjBk"))
         )
       ).build()
   }
@@ -159,6 +191,19 @@ case class SlackEventHandleServiceImpl @Inject()
     val options = new java.util.ArrayList[OptionObject]()
     projects.forEach(p=> options.add(OptionObject.builder()
       .value(p.getId.toString)
+      .text(PlainTextObject.builder().text(p.getName).build())
+      .build())
+    )
+    options
+  }
+
+  private def getIssueTypes(authInfoEntity:BacklogAuthInfoEntity, projectId:String): util.ArrayList[OptionObject] = {
+    val projects = backlogRepository.getIssueTypes(authInfoEntity,projectId)
+    // BuildKitに渡すために、JavaのArrayListを使用する必要あり
+    val options = new java.util.ArrayList[OptionObject]()
+    projects.forEach(p=>
+      options.add(OptionObject.builder()
+      .value("projectId:" + p.getProjectId.toString + "," + "issueTypeId:" + p.getId.toString)
       .text(PlainTextObject.builder().text(p.getName).build())
       .build())
     )

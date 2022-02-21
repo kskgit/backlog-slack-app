@@ -17,6 +17,7 @@ case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandl
     app.messageShortcut("accept-create-issue-request", slackEventHandleService.acceptCreateIssueRequest)
     app.viewSubmission("registration-auth-info-to-store", slackEventHandleService.registrationAuthInfoToStore)
     app.viewSubmission("registration-issue-to-backlog", slackEventHandleService.registrationIssueToBacklog)
+    app.blockAction("post-issue-info-req-to-slack", slackEventHandleService.postIssueInfoReqToSlack)
 
     new SocketModeApp(app).start()
   }

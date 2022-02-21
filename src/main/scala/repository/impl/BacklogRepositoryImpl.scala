@@ -1,8 +1,8 @@
 package repository.impl
 
 import com.nulabinc.backlog4j.Issue.PriorityType
-import com.nulabinc.backlog4j.api.option.CreateIssueParams
-import com.nulabinc.backlog4j.{Project, ResponseList}
+import com.nulabinc.backlog4j.api.option.{CreateIssueParams, GetIssuesParams}
+import com.nulabinc.backlog4j.{Issue, IssueType, Project, ResponseList}
 import entity.BacklogAuthInfoEntity
 import repository.BacklogRepository
 import repository.client.BacklogClientInitializer
@@ -31,4 +31,16 @@ case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitiali
 
   override def getProjects: BacklogAuthInfoEntity => ResponseList[Project] = (authInfo: BacklogAuthInfoEntity)
     => backlogClient.initialize(authInfo).getProjects
+
+//  def getGetIssuesParams: (String, String, Int, String) => GetIssuesParams
+//  = (projectId, issueTitle, issueTypeId, messageLink) => {
+//    new GetIssuesParams("")
+//  }
+//
+//  override def getIssues: BacklogAuthInfoEntity => ResponseList[IssueType] = (authInfo: BacklogAuthInfoEntity)
+//  => backlogClient.initialize(authInfo).getIssues(getGetIssuesParams(""))
+
+  override def getIssueTypes: (BacklogAuthInfoEntity,String) => ResponseList[IssueType]
+    = (authInfo: BacklogAuthInfoEntity, projectId:String)
+      => backlogClient.initialize(authInfo).getIssueTypes(projectId)
 }
