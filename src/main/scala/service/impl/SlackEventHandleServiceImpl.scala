@@ -55,15 +55,14 @@ case class SlackEventHandleServiceImpl @Inject()
   }
 
   override def registrationAuthInfoToStore: ViewSubmissionHandler = (req, ctx) => {
-    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     // TODO: 登録する前に以下で認証情報の確認
     //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
-    // TODO: FireStoreへ登録
     def getUser = req.getPayload.getUser
     storeRepository.createBacklogAuthInfo(getUser.getTeamId, getUser.getId, req)
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(req.getPayload.getTeam.getId, req.getPayload.getUser.getId)
     val response = ViewSubmissionResponse.builder()
       .responseAction("update")
-      .view(getInputIssueInfoView(getProjectOptions(backlogAuthInfo)))
+      .view(getSelectProjectView(getProjectOptions(backlogAuthInfo)))
       .build()
     ctx.ack(response)
   }
