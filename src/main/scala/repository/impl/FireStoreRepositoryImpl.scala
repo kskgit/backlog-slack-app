@@ -40,8 +40,8 @@ case class FireStoreRepositoryImpl @Inject() (fireStoreClient: FireStoreClientIn
     // JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
-        put(spaceId, spaceId)
-        put(apiKey, apiKey)
+        put("spaceId", spaceId)
+        put("apiKey", apiKey)
       }
     }
     val param = new util.HashMap[String, util.HashMap[String, String]] {
