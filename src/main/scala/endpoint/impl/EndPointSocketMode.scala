@@ -4,7 +4,7 @@ import com.slack.api.bolt.{App, AppConfig}
 import com.slack.api.bolt.socket_mode.SocketModeApp
 import endpoint.EndPoint
 import service.SlackEventHandleService
-
+import constant.SlackEventType
 import javax.inject.Inject
 
 case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandleService) extends EndPoint {
@@ -14,10 +14,10 @@ case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandl
     config.setSigningSecret(sys.env("SLACK_SIGNING_SECRET"))
 
     val app = new App(config)
-    app.messageShortcut("accept-create-issue-request", slackEventHandleService.acceptCreateIssueRequest)
-    app.viewSubmission("registration-auth-info-to-store", slackEventHandleService.registrationAuthInfoToStore)
-    app.viewSubmission("registration-issue-to-backlog", slackEventHandleService.registrationIssueToBacklog)
-    app.blockAction("post-issue-info-req-to-slack", slackEventHandleService.postIssueInfoReqToSlack)
+    app.messageShortcut(SlackEventType.AcceptCreateIssueRequest.typeName, slackEventHandleService.acceptCreateIssueRequest)
+    app.viewSubmission(SlackEventType.RegistrationAuthInfoToStore.typeName, slackEventHandleService.registrationAuthInfoToStore)
+    app.blockAction(SlackEventType.PostIssueInfoReqToSlack.typeName, slackEventHandleService.postIssueInfoReqToSlack)
+    app.viewSubmission(SlackEventType.RegistrationIssueToBacklog.typeName, slackEventHandleService.registrationIssueToBacklog)
 
     new SocketModeApp(app).start()
   }

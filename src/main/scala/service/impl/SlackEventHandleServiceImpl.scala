@@ -7,11 +7,12 @@ import com.slack.api.methods.request.chat.ChatGetPermalinkRequest
 import com.slack.api.methods.request.views.ViewsOpenRequest.ViewsOpenRequestBuilder
 import com.slack.api.methods.request.views.ViewsUpdateRequest.ViewsUpdateRequestBuilder
 import com.slack.api.model.block.Blocks.{asBlocks, input, section}
-import com.slack.api.model.block.composition.BlockCompositions.{asOptions, markdownText}
+import com.slack.api.model.block.composition.BlockCompositions.markdownText
 import com.slack.api.model.block.composition.{OptionObject, PlainTextObject}
 import com.slack.api.model.block.element.BlockElements.{plainTextInput, staticSelect}
 import com.slack.api.model.view.Views.{view, viewClose, viewSubmit, viewTitle}
 import com.slack.api.model.view.{View, ViewSubmit}
+import constant.SlackEventType
 import entity.BacklogAuthInfoEntity
 import repository.{BacklogRepository, StoreRepository}
 import service.SlackEventHandleService
@@ -100,7 +101,7 @@ case class SlackEventHandleServiceImpl @Inject()
     View
       .builder()
       .`type`("modal")
-      .callbackId("registration-issue-to-backlog")
+      .callbackId(SlackEventType.RegistrationIssueToBacklog.typeName)
       .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
       .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
       .submit(viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) => submit.`type`("plain_text").text("送信").emoji(true)))
@@ -131,7 +132,7 @@ case class SlackEventHandleServiceImpl @Inject()
     View
       .builder()
       .`type`("modal")
-      .callbackId("post-issue-info-req-to-slack")
+      .callbackId(SlackEventType.PostIssueInfoReqToSlack.typeName)
       .title(viewTitle(vt => vt.`type`("plain_text").text("プロジェクトを選択")))
       .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
       .blocks(
@@ -148,7 +149,7 @@ case class SlackEventHandleServiceImpl @Inject()
       .view(view(v=>
         v
           .`type`("modal")
-          .callbackId("registration-auth-info-to-store")
+          .callbackId(SlackEventType.RegistrationAuthInfoToStore.typeName)
           .title(viewTitle(vt => vt.`type`("plain_text").text("認証情報を入力する")))
           .close(viewClose(c=>c.`type`("plain_text").text("閉じる")))
           .submit(viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) => submit.`type`("plain_text").text("送信").emoji(true)))
