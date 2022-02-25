@@ -1,6 +1,7 @@
 .idea
 target
-project
+project/project
+project/target
 .bsp
 .env
 src/main/resources

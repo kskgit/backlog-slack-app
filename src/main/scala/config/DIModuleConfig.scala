@@ -11,7 +11,9 @@ import service.impl.SlackEventHandleServiceImpl
 class DIModuleConfig extends AbstractModule {
   override protected def configure(): Unit = {
     bind(classOf[EndPoint]).to(classOf[EndPointSocketMode])
-    bind(classOf[SlackEventHandleService]).to(classOf[SlackEventHandleServiceImpl])
+    bind(classOf[SlackEventHandleService]).to(
+      classOf[SlackEventHandleServiceImpl]
+    )
     bind(classOf[BacklogRepository]).to(classOf[BacklogRepositoryImpl])
     bind(classOf[StoreRepository]).to(classOf[FireStoreRepositoryImpl])
   }

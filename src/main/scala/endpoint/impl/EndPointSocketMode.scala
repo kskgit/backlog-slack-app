@@ -7,17 +7,31 @@ import service.SlackEventHandleService
 import constant.SlackEventType
 import javax.inject.Inject
 
-case class EndPointSocketMode @Inject()(slackEventHandleService: SlackEventHandleService) extends EndPoint {
+case class EndPointSocketMode @Inject() (
+    slackEventHandleService: SlackEventHandleService
+) extends EndPoint {
   override def startServer(): Unit = {
     val config = new AppConfig
     config.setSingleTeamBotToken(sys.env("SLACK_BOT_TOKEN"))
     config.setSigningSecret(sys.env("SLACK_SIGNING_SECRET"))
 
     val app = new App(config)
-    app.messageShortcut(SlackEventType.AcceptCreateIssueRequest.typeName, slackEventHandleService.acceptCreateIssueRequest)
-    app.viewSubmission(SlackEventType.RegistrationAuthInfoToStore.typeName, slackEventHandleService.registrationAuthInfoToStore)
-    app.blockAction(SlackEventType.PostIssueInfoReqToSlack.typeName, slackEventHandleService.postIssueInfoReqToSlack)
-    app.viewSubmission(SlackEventType.RegistrationIssueToBacklog.typeName, slackEventHandleService.registrationIssueToBacklog)
+    app.messageShortcut(
+      SlackEventType.AcceptCreateIssueRequest.typeName,
+      slackEventHandleService.acceptCreateIssueRequest
+    )
+    app.viewSubmission(
+      SlackEventType.RegistrationAuthInfoToStore.typeName,
+      slackEventHandleService.registrationAuthInfoToStore
+    )
+    app.blockAction(
+      SlackEventType.PostIssueInfoReqToSlack.typeName,
+      slackEventHandleService.postIssueInfoReqToSlack
+    )
+    app.viewSubmission(
+      SlackEventType.RegistrationIssueToBacklog.typeName,
+      slackEventHandleService.registrationIssueToBacklog
+    )
 
     new SocketModeApp(app).start()
   }

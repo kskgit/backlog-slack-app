@@ -9,38 +9,36 @@ import repository.client.BacklogClientInitializer
 
 import javax.inject.Inject
 
-case class BacklogRepositoryImpl @Inject() (backlogClient: BacklogClientInitializer) extends BacklogRepository {
+case class BacklogRepositoryImpl @Inject() (
+    backlogClient: BacklogClientInitializer
+) extends BacklogRepository {
 
   // TODO: ViewSubmissionRequest を受け取る場合storeRepositoryと平仄を合わせる
-  override def getCreateIssueParams: (String, String, Int, String) => CreateIssueParams
-    = (projectId, issueTitle, issueTypeId, messageLink) => {
-    new CreateIssueParams(
-      projectId,
-      issueTitle
-      ,issueTypeId
-      ,PriorityType.Normal
-    ).description(messageLink)
-  }
+  override def getCreateIssueParams
+      : (String, String, Int, String) => CreateIssueParams =
+    (projectId, issueTitle, issueTypeId, messageLink) => {
+      new CreateIssueParams(
+        projectId,
+        issueTitle,
+        issueTypeId,
+        PriorityType.Normal
+      ).description(messageLink)
+    }
 
-  override def createIssue: (CreateIssueParams, BacklogAuthInfoEntity) => String
-    = (createIssueParams: CreateIssueParams, authInfo: BacklogAuthInfoEntity) => {
-          val backlogClientAuthed = backlogClient.initialize(authInfo)
-          val issue = backlogClientAuthed.createIssue(createIssueParams)
-          backlogClientAuthed.getIssueUrl(issue)
-      }
+  override def createIssue
+      : (CreateIssueParams, BacklogAuthInfoEntity) => String =
+    (createIssueParams: CreateIssueParams, authInfo: BacklogAuthInfoEntity) => {
+      val backlogClientAuthed = backlogClient.initialize(authInfo)
+      val issue = backlogClientAuthed.createIssue(createIssueParams)
+      backlogClientAuthed.getIssueUrl(issue)
+    }
 
-  override def getProjects: BacklogAuthInfoEntity => ResponseList[Project] = (authInfo: BacklogAuthInfoEntity)
-    => backlogClient.initialize(authInfo).getProjects
+  override def getProjects: BacklogAuthInfoEntity => ResponseList[Project] =
+    (authInfo: BacklogAuthInfoEntity) =>
+      backlogClient.initialize(authInfo).getProjects
 
-//  def getGetIssuesParams: (String, String, Int, String) => GetIssuesParams
-//  = (projectId, issueTitle, issueTypeId, messageLink) => {
-//    new GetIssuesParams("")
-//  }
-//
-//  override def getIssues: BacklogAuthInfoEntity => ResponseList[IssueType] = (authInfo: BacklogAuthInfoEntity)
-//  => backlogClient.initialize(authInfo).getIssues(getGetIssuesParams(""))
-
-  override def getIssueTypes: (BacklogAuthInfoEntity,String) => ResponseList[IssueType]
-    = (authInfo: BacklogAuthInfoEntity, projectId:String)
-      => backlogClient.initialize(authInfo).getIssueTypes(projectId)
+  override def getIssueTypes
+      : (BacklogAuthInfoEntity, String) => ResponseList[IssueType] =
+    (authInfo: BacklogAuthInfoEntity, projectId: String) =>
+      backlogClient.initialize(authInfo).getIssueTypes(projectId)
 }

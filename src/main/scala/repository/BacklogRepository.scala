@@ -6,7 +6,7 @@ import entity.BacklogAuthInfoEntity
 
 trait BacklogRepository {
   def getCreateIssueParams: (String, String, Int, String) => CreateIssueParams
-  def createIssue: (CreateIssueParams,BacklogAuthInfoEntity)  => String
+  def createIssue: (CreateIssueParams, BacklogAuthInfoEntity) => String
   def getProjects: BacklogAuthInfoEntity => ResponseList[Project]
-  def getIssueTypes: (BacklogAuthInfoEntity,String) => ResponseList[IssueType]
+  def getIssueTypes: (BacklogAuthInfoEntity, String) => ResponseList[IssueType]
 }

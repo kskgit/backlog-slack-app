@@ -1,5 +1,5 @@
 package endpoint
 
 trait EndPoint {
- def startServer() : Unit
+  def startServer(): Unit
 }
