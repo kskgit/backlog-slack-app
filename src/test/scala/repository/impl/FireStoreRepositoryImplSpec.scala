@@ -70,7 +70,7 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
     )
   }
 
-  test("getMostRecentMessageLink") {
+  test("createMostRecentMessageLink") {
     val fireStoreClientImpl = mock[FireStoreClientImpl]
     val param = new util.HashMap[String, String] {
       {
@@ -88,55 +88,17 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
     )
   }
 
-  //    when(
-//      fireStoreClientImpl.getValInCollectionDocument(
-//        "users",
-//        "teamId",
-//        "userId"
-//      )
-//    ) thenReturn null
-//
-//    val result = FireStoreRepositoryImpl(fireStoreClientImpl)
-//      .createBacklogAuthInfo("teamId", "userId", "apiKey", "userId")
-//
-//    val expect = BacklogAuthInfoEntity.apply("", "")
-//    assert(result == expect)
-  //
-//  test("getBacklogAuthInfo テスト") {
-//    val result = FireStoreRepositoryImpl(FireStoreClientImpl())
-//      .getBacklogAuthInfo("XXX", "YYY")
-//    // TODO: テストコード見直し
-//    val expect = BacklogAuthInfoEntity.apply("test", "test")
-//    assert(result == expect)
-//  }
-//
-//  test("setBacklogKey テスト") {
-//    val fireStoreClient = FireStoreClientImpl()
-//    val fireStoreRepositoryImpl = FireStoreRepositoryImpl(fireStoreClient)
-//    // TODO: テストコード見直し
-////    fireStoreRepositoryImpl.setBacklogAuthInfo("channelId","userId","spaceId","apiKey")
-////    val expect = BacklogAuthInfoEntity.apply("test", "test")
-////    assert(result == expect)
-//  }
-//
-//  test("createMostRecentMessageLink テスト") {
-//    val fireStoreClient = FireStoreClientImpl()
-//    val fireStoreRepositoryImpl = FireStoreRepositoryImpl(fireStoreClient)
-//    // TODO: テストコード見直し
-//    fireStoreRepositoryImpl.createMostRecentMessageLink(
-//      "teamId",
-//      "userId",
-//      "url"
-//    )
-////    val expect = BacklogAuthInfoEntity.apply("test", "test")
-////    assert(result == expect)
-//  }
-//
-//  test("getMostRecentMessageLink テスト") {
-//    val fireStoreClient = FireStoreClientImpl()
-//    val fireStoreRepositoryImpl = FireStoreRepositoryImpl(fireStoreClient)
-//    // TODO: テストコード見直し
-//    fireStoreRepositoryImpl.getMostRecentMessageLink("teamId", "userId")
-//    //    val expect = BacklogAuthInfoEntity.apply("test", "test")
-//    //    assert(result == expect)
+  test("getMostRecentMessageLink") {
+    val fireStoreClientImpl = mock[FireStoreClientImpl]
+
+    FireStoreRepositoryImpl(fireStoreClientImpl)
+      .getMostRecentMessageLink("teamId", "userId")
+
+    verify(fireStoreClientImpl, times(1)).getValInCollectionDocument(
+      "links",
+      "teamId",
+      "userId"
+    )
+  }
+
 }

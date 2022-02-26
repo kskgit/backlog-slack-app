@@ -84,8 +84,6 @@ case class FireStoreRepositoryImpl @Inject() (
       teamId: String,
       userId: String
   ): String = {
-    val query = db.collection(links).document(teamId)
-    val doc = query.get().get().get(userId)
-    doc.toString
+    fireStoreClient.getValInCollectionDocument(links, teamId, userId)
   }
 }
