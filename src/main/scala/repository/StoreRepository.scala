@@ -2,7 +2,7 @@ package repository
 
 import params.BacklogAuthInfoParams
 
-// NOTE: FireStore意外のStoreを使用する可能性があるため、StoreRepositoryという名前で作成
+// NOTE: FireStore以外のStoreを使用する可能性があるため、StoreRepositoryという名前で作成
 //  各メソッド用のパラメータクラス作成を検討するも、抽象クラス（StoreRepository）用のパラメータクラスと
 //  実装クラス（FireStoreRepositoryImpl）用のパラメータクラスのパラメータ値を一致させる必要があり
 //  抽象化するメリットが無かった（それ以外の方法が分からなかった）ため未作成
