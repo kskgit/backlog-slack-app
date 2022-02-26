@@ -14,20 +14,18 @@ case class FireStoreRepositoryImpl @Inject() (
 ) extends StoreRepository {
   // NOTE:FireStoreのコレクション名はFireStoreに依存するためこのクラスに記載
   //  users collection keys
-  private final val users = "users"
-  private final val spaceId = "spaceId"
-  private final val apiKey = "apiKey"
+  private final val USERS = "users"
+  private final val SPACE_ID = "spaceId"
+  private final val APIKEY = "apiKey"
   //  links collection keys
-  private final val links = "links"
-
-  private val db = fireStoreClient.fireStore
+  private final val LINKS = "links"
 
   override def getBacklogAuthInfo(
       teamId: String,
       userId: String
   ): BacklogAuthInfoParams = {
     val authInfo =
-      fireStoreClient.getValInCollectionDocument(users, teamId, userId)
+      fireStoreClient.getValInCollectionDocument(USERS, teamId, userId)
 
     if (authInfo == null) {
       return BacklogAuthInfoParams.apply("", "")
@@ -42,7 +40,7 @@ case class FireStoreRepositoryImpl @Inject() (
       .map { case Array(k, v) => (k, v) }
       .toMap
 
-    BacklogAuthInfoParams.apply(authInfoMap(spaceId), authInfoMap(apiKey))
+    BacklogAuthInfoParams.apply(authInfoMap(SPACE_ID), authInfoMap(APIKEY))
   }
 
   override def createBacklogAuthInfo(
@@ -54,8 +52,8 @@ case class FireStoreRepositoryImpl @Inject() (
     // FireStoreへ渡す値を加工、JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
-        put("spaceId", spaceId)
-        put("apiKey", apiKey)
+        put(SPACE_ID, spaceId)
+        put(APIKEY, apiKey)
       }
     }
     val param = new util.HashMap[String, util.HashMap[String, String]] {
@@ -63,7 +61,7 @@ case class FireStoreRepositoryImpl @Inject() (
         put(userId, tmpAuthInfo)
       }
     }
-    fireStoreClient.createValInCollectionDocument(users, teamId, param)
+    fireStoreClient.createValInCollectionDocument(USERS, teamId, param)
   }
 
   override def createMostRecentMessageLink(
@@ -77,13 +75,13 @@ case class FireStoreRepositoryImpl @Inject() (
         put(userId, url)
       }
     }
-    fireStoreClient.createValInCollectionDocument(links, teamId, param)
+    fireStoreClient.createValInCollectionDocument(LINKS, teamId, param)
   }
 
   override def getMostRecentMessageLink(
       teamId: String,
       userId: String
   ): String = {
-    fireStoreClient.getValInCollectionDocument(links, teamId, userId)
+    fireStoreClient.getValInCollectionDocument(LINKS, teamId, userId)
   }
 }
