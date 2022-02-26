@@ -22,7 +22,7 @@ import com.slack.api.model.block.element.BlockElements.{
 }
 import com.slack.api.model.view.Views.{view, viewClose, viewSubmit, viewTitle}
 import com.slack.api.model.view.{View, ViewSubmit}
-import constant.SlackEventType
+import constant.SlackEventTypes
 import entity.BacklogAuthInfoEntity
 import repository.{BacklogRepository, StoreRepository}
 import service.SlackEventHandleService
@@ -93,7 +93,7 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
     val projectId = req.getPayload.getView.getState.getValues
       .get("pjBk")
-      .get("post-issue-info-req-to-slack")
+      .get(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
       .getSelectedOption
       .getValue
     ctx
@@ -185,7 +185,7 @@ case class SlackEventHandleServiceImpl @Inject() (
     View
       .builder()
       .`type`("modal")
-      .callbackId(SlackEventType.RegistrationIssueToBacklog.typeName)
+      .callbackId(SlackEventTypes.RegistrationIssueToBacklog.typeName)
       .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
       .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
       .submit(
@@ -237,7 +237,7 @@ case class SlackEventHandleServiceImpl @Inject() (
     View
       .builder()
       .`type`("modal")
-      .callbackId(SlackEventType.PostIssueInfoReqToSlack.typeName)
+      .callbackId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
       .title(viewTitle(vt => vt.`type`("plain_text").text("プロジェクトを選択")))
       .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
       .blocks(
@@ -245,7 +245,8 @@ case class SlackEventHandleServiceImpl @Inject() (
           section(s =>
             s.accessory(
               staticSelect(s =>
-                s.actionId("post-issue-info-req-to-slack").options(options)
+                s.actionId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
+                  .options(options)
               )
             ).text(PlainTextObject.builder().text("プロジェクトを選択してください").build())
               .blockId("pjBk")
@@ -264,7 +265,7 @@ case class SlackEventHandleServiceImpl @Inject() (
         view(v =>
           v
             .`type`("modal")
-            .callbackId(SlackEventType.RegistrationAuthInfoToStore.typeName)
+            .callbackId(SlackEventTypes.RegistrationAuthInfoToStore.typeName)
             .title(viewTitle(vt => vt.`type`("plain_text").text("認証情報を入力する")))
             .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
             .submit(

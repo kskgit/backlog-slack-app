@@ -4,7 +4,8 @@ import com.slack.api.bolt.{App, AppConfig}
 import com.slack.api.bolt.socket_mode.SocketModeApp
 import endpoint.EndPoint
 import service.SlackEventHandleService
-import constant.SlackEventType
+import constant.SlackEventTypes
+
 import javax.inject.Inject
 
 case class EndPointSocketMode @Inject() (
@@ -14,22 +15,21 @@ case class EndPointSocketMode @Inject() (
     val config = new AppConfig
     config.setSingleTeamBotToken(sys.env("SLACK_BOT_TOKEN"))
     config.setSigningSecret(sys.env("SLACK_SIGNING_SECRET"))
-
     val app = new App(config)
     app.messageShortcut(
-      SlackEventType.AcceptCreateIssueRequest.typeName,
+      SlackEventTypes.AcceptCreateIssueRequest.typeName,
       slackEventHandleService.acceptCreateIssueRequest
     )
     app.viewSubmission(
-      SlackEventType.RegistrationAuthInfoToStore.typeName,
+      SlackEventTypes.RegistrationAuthInfoToStore.typeName,
       slackEventHandleService.registrationAuthInfoToStore
     )
     app.blockAction(
-      SlackEventType.PostIssueInfoReqToSlack.typeName,
+      SlackEventTypes.PostIssueInfoReqToSlack.typeName,
       slackEventHandleService.postIssueInfoReqToSlack
     )
     app.viewSubmission(
-      SlackEventType.RegistrationIssueToBacklog.typeName,
+      SlackEventTypes.RegistrationIssueToBacklog.typeName,
       slackEventHandleService.registrationIssueToBacklog
     )
 
