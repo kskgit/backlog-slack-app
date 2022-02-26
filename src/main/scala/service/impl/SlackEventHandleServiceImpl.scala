@@ -23,7 +23,7 @@ import com.slack.api.model.block.element.BlockElements.{
 import com.slack.api.model.view.Views.{view, viewClose, viewSubmit, viewTitle}
 import com.slack.api.model.view.{View, ViewSubmit}
 import constant.SlackEventTypes
-import entity.BacklogAuthInfoEntity
+import params.BacklogAuthInfoParams
 import repository.{BacklogRepository, StoreRepository}
 import service.SlackEventHandleService
 
@@ -114,10 +114,19 @@ case class SlackEventHandleServiceImpl @Inject() (
       // TODO: 登録する前に以下で認証情報の確認
       //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
       def getUser = req.getPayload.getUser
+      val apiKey = req.getPayload.getView.getState.getValues
+        .get("apiBlock")
+        .get("apiAction")
+        .getValue
+      val spaceId = req.getPayload.getView.getState.getValues
+        .get("spaceBlock")
+        .get("spaceAction")
+        .getValue
       storeRepository.createBacklogAuthInfo(
         getUser.getTeamId,
         getUser.getId,
-        req
+        apiKey,
+        spaceId
       )
       val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
         req.getPayload.getTeam.getId,
@@ -324,7 +333,7 @@ case class SlackEventHandleServiceImpl @Inject() (
   }
 
   private def getProjectOptions(
-      authInfoEntity: BacklogAuthInfoEntity
+      authInfoEntity: BacklogAuthInfoParams
   ): util.ArrayList[OptionObject] = {
     val projects = backlogRepository.getProjects(authInfoEntity)
     // BuildKitに渡すために、JavaのArrayListを使用する必要あり
@@ -342,7 +351,7 @@ case class SlackEventHandleServiceImpl @Inject() (
   }
 
   private def getIssueTypes(
-      authInfoEntity: BacklogAuthInfoEntity,
+      authInfoEntity: BacklogAuthInfoParams,
       projectId: String
   ): util.ArrayList[OptionObject] = {
     val projects = backlogRepository.getIssueTypes(authInfoEntity, projectId)

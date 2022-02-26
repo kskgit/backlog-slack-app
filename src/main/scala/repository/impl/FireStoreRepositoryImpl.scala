@@ -1,18 +1,18 @@
 package repository.impl
-
-import com.slack.api.bolt.request.builtin.ViewSubmissionRequest
-import entity.BacklogAuthInfoEntity
-import params.StoreParams
+import params.BacklogAuthInfoParams
 import repository.StoreRepository
 import repository.client.FireStoreClientImpl
 
 import java.util
 import javax.inject.Inject
 
-// TODO: ハードコーディング修正（FireStoreの構造に依存する = FireStoreRepositoryImplに依存するため、ここにstatic valueとして記載する）
+/** FireStoreとのやり取りを提供するクラス
+  * @param fireStoreClient 公式ライブラリFirestoreClientをラップしたクラス
+  */
 case class FireStoreRepositoryImpl @Inject() (
     fireStoreClient: FireStoreClientImpl
 ) extends StoreRepository {
+  // NOTE:FireStoreのコレクション名はFireStoreに依存するためこのクラスに記載
   //  users collection keys
   private final val users = "users"
   private final val spaceId = "spaceId"
@@ -22,19 +22,19 @@ case class FireStoreRepositoryImpl @Inject() (
 
   private val db = fireStoreClient.fireStore
 
-  // TODO: getMostRecentMessageLinkを参考にリファクタ
   override def getBacklogAuthInfo(
       teamId: String,
       userId: String
-  ): BacklogAuthInfoEntity = {
+  ): BacklogAuthInfoParams = {
 
     val authInfo =
       fireStoreClient.getValInCollectionDocument(users, teamId, userId)
 
     if (authInfo == null) {
-      return BacklogAuthInfoEntity.apply("", "")
+      return BacklogAuthInfoParams.apply("", "")
     }
 
+    // FireStoreからStringで取得した値をMapに加工
     val authInfoMap = authInfo
       .substring(1, authInfo.length - 1)
       .replace(" ", "")
@@ -43,22 +43,16 @@ case class FireStoreRepositoryImpl @Inject() (
       .map { case Array(k, v) => (k, v) }
       .toMap
 
-    BacklogAuthInfoEntity.apply(authInfoMap(spaceId), authInfoMap(apiKey))
+    BacklogAuthInfoParams.apply(authInfoMap(spaceId), authInfoMap(apiKey))
   }
 
   override def createBacklogAuthInfo(
       teamId: String,
       userId: String,
-      req: ViewSubmissionRequest
+      apiKey: String,
+      spaceId: String
   ): Unit = {
-    val apiKey = req.getPayload.getView.getState.getValues
-      .get("apiBlock")
-      .get("apiAction")
-      .getValue
-    val spaceId = req.getPayload.getView.getState.getValues
-      .get("spaceBlock")
-      .get("spaceAction")
-      .getValue
+
     // JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
@@ -71,7 +65,8 @@ case class FireStoreRepositoryImpl @Inject() (
         put(userId, tmpAuthInfo)
       }
     }
-    db.collection(users).document(teamId).set(param).get()
+    fireStoreClient.createValInCollectionDocument(users, teamId, param)
+//    db.collection(users).document(teamId).set(param).get()
   }
 
   override def createMostRecentMessageLink(

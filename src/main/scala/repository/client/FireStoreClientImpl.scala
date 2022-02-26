@@ -5,7 +5,8 @@ import com.google.cloud.firestore.{DocumentReference, Firestore}
 import com.google.firebase.cloud.FirestoreClient
 import com.google.firebase.{FirebaseApp, FirebaseOptions}
 
-// TODO: クライアントのメソッドをラップしたメソッド作成
+/** FirestoreClientのメソッドをラップして提供するクラス
+  */
 case class FireStoreClientImpl() {
 
   // TODO: コンパニオンオブジェクトの中に記載するか検討
@@ -18,6 +19,7 @@ case class FireStoreClientImpl() {
     FirebaseOptions.builder().setCredentials(credentials).build
   FirebaseApp.initializeApp(options)
 
+  // TODO: 最後にprivateにする
   val fireStore: Firestore = FirestoreClient.getFirestore
 
   def getValInCollectionDocument(
@@ -32,5 +34,16 @@ case class FireStoreClientImpl() {
       .get()
       .get(key)
       .toString
+
+  def createValInCollectionDocument(
+      collectionName: String,
+      documentName: String,
+      value: Object
+  ): Unit =
+    fireStore
+      .collection(collectionName)
+      .document(documentName)
+      .set(value)
+      .get()
 
 }

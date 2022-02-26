@@ -1,9 +1,11 @@
 package repository.impl
 
-import entity.BacklogAuthInfoEntity
-import org.mockito.Mockito.when
+import params.BacklogAuthInfoParams
+import org.mockito.Mockito.{times, verify, when}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatestplus.mockito.MockitoSugar
+
+import java.util
 //import org.mockito.Mockito.when
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.mockito.MockitoSugar
@@ -18,12 +20,12 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
         "teamId",
         "userId"
       )
-    ) thenReturn "{spaceId=project-id, apiKey=abC123}"
+    ) thenReturn "{spaceId=space-id, apiKey=apiKey}"
 
     val result = FireStoreRepositoryImpl(fireStoreClientImpl)
       .getBacklogAuthInfo("teamId", "userId")
 
-    val expect = BacklogAuthInfoEntity.apply("project-id", "abC123")
+    val expect = BacklogAuthInfoParams.apply("space-id", "apiKey")
     assert(result == expect)
   }
 
@@ -40,9 +42,46 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
     val result = FireStoreRepositoryImpl(fireStoreClientImpl)
       .getBacklogAuthInfo("teamId", "userId")
 
-    val expect = BacklogAuthInfoEntity.apply("", "")
+    val expect = BacklogAuthInfoParams.apply("", "")
     assert(result == expect)
   }
+
+  test("createBacklogAuthInfo") {
+    val fireStoreClientImpl = mock[FireStoreClientImpl]
+    val tmpAuthInfo = new util.HashMap[String, String] {
+      {
+        put("spaceId", "space-id")
+        put("apiKey", "apiKey")
+      }
+    }
+    val param = new util.HashMap[String, util.HashMap[String, String]] {
+      {
+        put("userId", tmpAuthInfo)
+      }
+    }
+
+    FireStoreRepositoryImpl(fireStoreClientImpl)
+      .createBacklogAuthInfo("teamId", "userId", "apiKey", "space-id")
+
+    verify(fireStoreClientImpl, times(1)).createValInCollectionDocument(
+      "users",
+      "teamId",
+      param
+    )
+  }
+  //    when(
+//      fireStoreClientImpl.getValInCollectionDocument(
+//        "users",
+//        "teamId",
+//        "userId"
+//      )
+//    ) thenReturn null
+//
+//    val result = FireStoreRepositoryImpl(fireStoreClientImpl)
+//      .createBacklogAuthInfo("teamId", "userId", "apiKey", "userId")
+//
+//    val expect = BacklogAuthInfoEntity.apply("", "")
+//    assert(result == expect)
   //
 //  test("getBacklogAuthInfo テスト") {
 //    val result = FireStoreRepositoryImpl(FireStoreClientImpl())
