@@ -30,7 +30,22 @@ class BacklogRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
 
     backlogRepositoryImpl.getProjects(backlogAuthInfoParams)
 
+    // TODO: backlogClientが返す値と結果が一致するか確認
     verify(backlogClient, times(1))
       .getProjects(backlogAuthInfoParams)
   }
+
+  test("getIssueTypes テスト") {
+    val backlogClient = mock[BacklogClientImpl](Mockito.RETURNS_DEEP_STUBS)
+    val backlogAuthInfoParams =
+      mock[BacklogAuthInfoParams](Mockito.RETURNS_DEEP_STUBS)
+    val backlogRepositoryImpl = BacklogRepositoryImpl(backlogClient)
+
+    backlogRepositoryImpl.getIssueTypes(backlogAuthInfoParams, "projectId")
+
+    // TODO: backlogClientが返す値と結果が一致するか確認
+    verify(backlogClient, times(1))
+      .getIssueTypes(backlogAuthInfoParams, "projectId")
+  }
+
 }

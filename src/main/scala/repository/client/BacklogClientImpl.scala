@@ -4,6 +4,7 @@ import com.nulabinc.backlog4j.api.option.CreateIssueParams
 import com.nulabinc.backlog4j.{
   BacklogClient,
   BacklogClientFactory,
+  IssueType,
   Project,
   ResponseList
 }
@@ -13,7 +14,7 @@ import params.BacklogAuthInfoParams
 // TODO: クライアントのメソッドをラップしたメソッド作成
 case class BacklogClientImpl() {
   // TODO: 最後にprivateへ変更する
-  def initialize(
+  private def initialize(
       backlogAuthInfoEntity: BacklogAuthInfoParams
   ): BacklogClient = {
     val configure: BacklogConfigure = new BacklogComConfigure(
@@ -35,6 +36,13 @@ case class BacklogClientImpl() {
       backlogAuthInfoParams: BacklogAuthInfoParams
   ): ResponseList[Project] = {
     initialize(backlogAuthInfoParams).getProjects
+  }
+
+  def getIssueTypes(
+      backlogAuthInfoParams: BacklogAuthInfoParams,
+      projectId: String
+  ): ResponseList[IssueType] = {
+    initialize(backlogAuthInfoParams).getIssueTypes(projectId)
   }
 
 }
