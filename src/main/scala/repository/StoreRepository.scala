@@ -30,6 +30,12 @@ trait StoreRepository {
       apiKey: String,
       spaceId: String
   ): Unit
+
+  /** Slackの会話URLを保存する
+    * @param teamId SlackのTeamId
+    * @param userId SlackのUserId
+    * @return Slackの会話URL
+    */
   def getMostRecentMessageLink(teamId: String, userId: String): String
   def createMostRecentMessageLink(
       teamId: String,

@@ -26,7 +26,6 @@ case class FireStoreRepositoryImpl @Inject() (
       teamId: String,
       userId: String
   ): BacklogAuthInfoParams = {
-
     val authInfo =
       fireStoreClient.getValInCollectionDocument(users, teamId, userId)
 
@@ -52,8 +51,7 @@ case class FireStoreRepositoryImpl @Inject() (
       apiKey: String,
       spaceId: String
   ): Unit = {
-
-    // JavaのhashMapを渡す必要あり
+    // FireStoreへ渡す値を加工、JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
         put("spaceId", spaceId)
@@ -66,7 +64,6 @@ case class FireStoreRepositoryImpl @Inject() (
       }
     }
     fireStoreClient.createValInCollectionDocument(users, teamId, param)
-//    db.collection(users).document(teamId).set(param).get()
   }
 
   override def createMostRecentMessageLink(
@@ -74,13 +71,13 @@ case class FireStoreRepositoryImpl @Inject() (
       userId: String,
       url: String
   ): Unit = {
-    // JavaのhashMapを渡す必要あり
+    // FireStoreへ渡す値を加工、JavaのhashMapを渡す必要あり
     val param = new util.HashMap[String, String] {
       {
         put(userId, url)
       }
     }
-    db.collection(links).document(teamId).set(param).get()
+    fireStoreClient.createValInCollectionDocument(links, teamId, param)
   }
 
   override def getMostRecentMessageLink(

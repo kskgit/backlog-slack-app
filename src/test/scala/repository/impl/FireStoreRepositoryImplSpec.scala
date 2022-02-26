@@ -69,6 +69,25 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
       param
     )
   }
+
+  test("getMostRecentMessageLink") {
+    val fireStoreClientImpl = mock[FireStoreClientImpl]
+    val param = new util.HashMap[String, String] {
+      {
+        put("userId", "url")
+      }
+    }
+
+    FireStoreRepositoryImpl(fireStoreClientImpl)
+      .createMostRecentMessageLink("teamId", "userId", "url")
+
+    verify(fireStoreClientImpl, times(1)).createValInCollectionDocument(
+      "links",
+      "teamId",
+      param
+    )
+  }
+
   //    when(
 //      fireStoreClientImpl.getValInCollectionDocument(
 //        "users",
