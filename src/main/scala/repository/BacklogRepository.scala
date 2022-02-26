@@ -31,6 +31,15 @@ trait BacklogRepository {
       createIssueParams: CreateIssueParams,
       backlogAuthInfoParams: BacklogAuthInfoParams
   ): String
-  def getProjects: BacklogAuthInfoParams => ResponseList[Project]
+
+  /** Backlogの課題一覧を取得する
+    *
+    * @param backlogAuthInfoParams Backlogの認証情報
+    * @return 課題一覧
+    */
+  def getProjects(
+      backlogAuthInfoParams: BacklogAuthInfoParams
+  ): ResponseList[Project]
+
   def getIssueTypes: (BacklogAuthInfoParams, String) => ResponseList[IssueType]
 }

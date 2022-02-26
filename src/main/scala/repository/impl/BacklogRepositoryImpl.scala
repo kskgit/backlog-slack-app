@@ -32,9 +32,10 @@ case class BacklogRepositoryImpl @Inject() (
   ): String =
     backlogClient.createIssue(createIssueParams, backlogAuthInfoParams)
 
-  override def getProjects: BacklogAuthInfoParams => ResponseList[Project] =
-    (authInfo: BacklogAuthInfoParams) =>
-      backlogClient.initialize(authInfo).getProjects
+  override def getProjects(
+      authInfo: BacklogAuthInfoParams
+  ): ResponseList[Project] =
+    backlogClient.getProjects(authInfo)
 
   override def getIssueTypes
       : (BacklogAuthInfoParams, String) => ResponseList[IssueType] =
