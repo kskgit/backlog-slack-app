@@ -44,14 +44,20 @@ case class FireStoreClientImpl() {
       collectionName: String,
       documentName: String,
       key: String
-  ): String =
-    fireStore
+  ): String = {
+    val value = fireStore
       .collection(collectionName)
       .document(documentName)
       .get()
       .get()
       .get(key)
-      .toString
+
+    if (value != null) {
+      value.toString
+    } else {
+      ""
+    }
+  }
 
   def createValInCollectionDocument(
       collectionName: String,

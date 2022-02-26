@@ -11,9 +11,7 @@ import com.nulabinc.backlog4j.{
 import com.nulabinc.backlog4j.conf.{BacklogComConfigure, BacklogConfigure}
 import params.BacklogAuthInfoParams
 
-// TODO: クライアントのメソッドをラップしたメソッド作成
 case class BacklogClientImpl() {
-  // TODO: 最後にprivateへ変更する
   private def initialize(
       backlogAuthInfoEntity: BacklogAuthInfoParams
   ): BacklogClient = {

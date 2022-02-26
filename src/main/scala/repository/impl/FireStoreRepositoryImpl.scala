@@ -27,7 +27,7 @@ case class FireStoreRepositoryImpl @Inject() (
     val authInfo =
       fireStoreClient.getValInCollectionDocument(USERS, teamId, userId)
 
-    if (authInfo == null) {
+    if (authInfo.isEmpty) {
       return BacklogAuthInfoParams.apply("", "")
     }
 
