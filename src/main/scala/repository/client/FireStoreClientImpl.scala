@@ -9,7 +9,25 @@ import com.google.firebase.{FirebaseApp, FirebaseOptions}
   */
 case class FireStoreClientImpl() {
 
-  // TODO: コンパニオンオブジェクトの中に記載するか検討
+  // NOTE クライアントの初期化処理について
+  // 以下コンパニオンオブジェクトでの初期化処理を検討するも失敗したためクラスに直書き
+  //object FireStoreClientImpl {
+  //  def apply(): FirebaseApp = {
+  //    val credentials = GoogleCredentials.fromStream(
+  //      getClass.getClassLoader.getResourceAsStream(
+  //        sys.env("FIREBASE_SETTING_JSON")
+  //      )
+  //    )
+  //    val options =
+  //      FirebaseOptions.builder().setCredentials(credentials).build
+  //
+  //    FirebaseApp.initializeApp(options)
+  //  }
+  //}
+
+  //
+  //  クライアント初期化処理 開始===
+  //
   private val credentials = GoogleCredentials.fromStream(
     getClass.getClassLoader.getResourceAsStream(
       sys.env("FIREBASE_SETTING_JSON")
@@ -18,9 +36,9 @@ case class FireStoreClientImpl() {
   private val options =
     FirebaseOptions.builder().setCredentials(credentials).build
   FirebaseApp.initializeApp(options)
+  //  クライアント初期化処理 終了===
 
-  // TODO: 最後にprivateにする
-  val fireStore: Firestore = FirestoreClient.getFirestore
+  private val fireStore: Firestore = FirestoreClient.getFirestore
 
   def getValInCollectionDocument(
       collectionName: String,
