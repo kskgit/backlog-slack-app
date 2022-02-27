@@ -1,10 +1,7 @@
 package service.impl
 
 import com.slack.api.app_backend.views.response.ViewSubmissionResponse
-import com.slack.api.bolt.context.builtin.{
-  MessageShortcutContext,
-  ViewSubmissionContext
-}
+import com.slack.api.bolt.context.builtin.MessageShortcutContext
 import com.slack.api.bolt.handler.builtin.{
   BlockActionHandler,
   MessageShortcutHandler,
@@ -417,7 +414,7 @@ case class SlackEventHandleServiceImpl @Inject() (
         .builder()
         .responseAction("update")
         .view(getCreatedIssueInfoView(url))
-        .build();
+        .build()
       ctx.ack(response)
     }
 
