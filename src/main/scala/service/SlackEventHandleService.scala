@@ -6,6 +6,7 @@ import com.slack.api.bolt.handler.builtin.{
   ViewSubmissionHandler
 }
 
+/** Slack EventHandlerを提供する */
 trait SlackEventHandleService {
 
   /** ユーザが Slack画面上で「Backlogに課題として登録する」を押下することで発火するイベントを処理するEventHandler

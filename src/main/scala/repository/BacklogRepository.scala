@@ -4,6 +4,7 @@ import com.nulabinc.backlog4j.api.option.CreateIssueParams
 import com.nulabinc.backlog4j.{IssueType, Project, ResponseList}
 import params.BacklogAuthInfoParams
 
+/** Backlogへアクセスするための処理を提供する */
 trait BacklogRepository {
 
   /** Backlogに保存する課題情報を取得する
@@ -32,7 +33,7 @@ trait BacklogRepository {
       backlogAuthInfoParams: BacklogAuthInfoParams
   ): String
 
-  /** Backlogの課題一覧を取得する
+  /** Backlogのプロジェクト一覧を取得する
     *
     * @param backlogAuthInfoParams Backlogの認証情報
     * @return 課題一覧

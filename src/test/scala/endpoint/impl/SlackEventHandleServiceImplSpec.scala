@@ -12,7 +12,6 @@ import repository.client.FireStoreClientImpl
 import repository.impl.{BacklogRepositoryImpl, FireStoreRepositoryImpl}
 import service.impl.SlackEventHandleServiceImpl
 
-// TODO: 再実装
 class SlackEventHandleServiceImplSpec extends AnyFunSuite with MockitoSugar {
   test("acceptCreateIssueRequest 認証情報ありの場合") {
     val req = mock[MessageShortcutRequest](Mockito.RETURNS_DEEP_STUBS)

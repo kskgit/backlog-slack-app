@@ -6,14 +6,12 @@ import repository.client.FireStoreClientImpl
 import java.util
 import javax.inject.Inject
 
-/** FireStoreとのやり取りを提供するクラス
-  * @param fireStoreClient 公式ライブラリFirestoreClientをラップしたクラス
-  */
 case class FireStoreRepositoryImpl @Inject() (
     fireStoreClient: FireStoreClientImpl
 ) extends StoreRepository {
-  // NOTE:FireStoreのコレクション名はFireStoreに依存するためこのクラスに記載
-  //  users collection keys
+  /*
+   * NOTE:FireStoreのコレクション名はFireStoreに依存するためこのクラスに記載
+   */
   private final val USERS = "users"
   private final val SPACE_ID = "spaceId"
   private final val APIKEY = "apiKey"
@@ -52,7 +50,7 @@ case class FireStoreRepositoryImpl @Inject() (
     // FireStoreへ渡す値を加工、JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
-        // TODO: 保存時に暗号化したい
+        // TODO: 保存時に暗号化
         put(SPACE_ID, spaceId)
         put(APIKEY, apiKey)
       }

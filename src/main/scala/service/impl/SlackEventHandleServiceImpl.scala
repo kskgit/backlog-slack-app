@@ -39,6 +39,8 @@ case class SlackEventHandleServiceImpl @Inject() (
     backlogRepository: BacklogRepository,
     storeRepository: StoreRepository
 )() extends SlackEventHandleService {
+
+  // Viewの要素へ指定するID
   private final val SELECT_PROJECT_BLOCK = "selectProjectBlock"
   private final val INPUT_API_KEY_BLOCK = "inputApiKeyBlock"
   private final val INPUT_API_KEY_ACTION = "inputApiKeyAction"
@@ -50,6 +52,10 @@ case class SlackEventHandleServiceImpl @Inject() (
   private final val SELECT_ISSUE_TITLE_ACTION = "selectIssueTitleAction"
   private final val PROJECT_ID = "projectID"
   private final val ISSUE_TYPE_ID = "issueTypeId"
+
+  /*
+   * === Slackから受け取ったイベントをハンドリングする処理 開始===
+   */
 
   override def acceptCreateIssueRequest: MessageShortcutHandler = (req, ctx) =>
     {
@@ -169,6 +175,14 @@ case class SlackEventHandleServiceImpl @Inject() (
         .build();
       ctx.ack(response)
     }
+
+  /*
+   * === Slackから受け取ったイベントをハンドリングする処理 終了===
+   */
+
+  /*
+   * === private method 開始===
+   */
 
   private def createMostRecentMessageLink(
       req: MessageShortcutRequest,
@@ -402,4 +416,7 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
     options
   }
+  /*
+   * === private method 終了===
+   */
 }

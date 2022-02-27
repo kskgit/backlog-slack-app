@@ -5,29 +5,29 @@ import com.google.cloud.firestore.Firestore
 import com.google.firebase.cloud.FirestoreClient
 import com.google.firebase.{FirebaseApp, FirebaseOptions}
 
-/** FirestoreClientのメソッドをラップして提供するクラス
-  */
+/** FirestoreClientライブラリのメソッドをラップして提供する */
 case class FireStoreClientImpl() {
 
-  // NOTE クライアントの初期化処理について
-  // 以下コンパニオンオブジェクトでの初期化処理を検討するも失敗したためクラスに直書き
-  //object FireStoreClientImpl {
-  //  def apply(): FirebaseApp = {
-  //    val credentials = GoogleCredentials.fromStream(
-  //      getClass.getClassLoader.getResourceAsStream(
-  //        sys.env("FIREBASE_SETTING_JSON")
-  //      )
-  //    )
-  //    val options =
-  //      FirebaseOptions.builder().setCredentials(credentials).build
-  //
-  //    FirebaseApp.initializeApp(options)
-  //  }
-  //}
+  /* NOTE クライアントの初期化処理について
+   * 以下コンパニオンオブジェクトでの初期化処理を検討するも失敗したためクラスに直書き
+   *object FireStoreClientImpl {
+   *  def apply(): FirebaseApp = {
+   *    val credentials = GoogleCredentials.fromStream(
+   *      getClass.getClassLoader.getResourceAsStream(
+   *        sys.env("FIREBASE_SETTING_JSON")
+   *      )
+   *    )
+   *    val options =
+   *      FirebaseOptions.builder().setCredentials(credentials).build
+   *
+   *    FirebaseApp.initializeApp(options)
+   *  }
+   *}
+   */
 
-  //
-  //  クライアント初期化処理 開始===
-  //
+  /*
+   *  === クライアント初期化用処理 開始===
+   */
   private val credentials = GoogleCredentials.fromStream(
     getClass.getClassLoader.getResourceAsStream(
       sys.env("FIREBASE_SETTING_JSON")
@@ -36,10 +36,19 @@ case class FireStoreClientImpl() {
   private val options =
     FirebaseOptions.builder().setCredentials(credentials).build
   FirebaseApp.initializeApp(options)
-  //  クライアント初期化処理 終了===
+  /*
+   *  === クライアント初期化用処理 終了===
+   */
 
   private val fireStore: Firestore = FirestoreClient.getFirestore
 
+  /** コレクション -> ドキュメント 配下の値をキーを指定して取得する
+    *
+    * @param collectionName コレクション名
+    * @param documentName ドキュメント名
+    * @param key キー名
+    * @return 取得した値、値が無ければ空文字
+    */
   def getValInCollectionDocument(
       collectionName: String,
       documentName: String,
@@ -59,6 +68,12 @@ case class FireStoreClientImpl() {
     }
   }
 
+  /** コレクション -> ドキュメント 配下に値を保存する
+    *
+    * @param collectionName コレクション名
+    * @param documentName ドキュメント名
+    * @return 取得した値、値が無ければ空文字
+    */
   def createValInCollectionDocument(
       collectionName: String,
       documentName: String,

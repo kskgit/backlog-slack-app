@@ -2,6 +2,7 @@ package constant
 
 sealed abstract class SlackEventTypes(val typeName: String)
 
+/** イベントタイプを保持する */
 object SlackEventTypes {
   case object AcceptCreateIssueRequest
       extends SlackEventTypes("accept-create-issue-request")
