@@ -35,6 +35,10 @@ import service.SlackEventHandleService
 import java.util
 import javax.inject.Inject
 
+/*NOTE
+ * override def method配下がメインのロジックです
+ * View作成、外部メソッドを呼び出しは見通しを良くするために極力private methodに切り出しました
+ */
 case class SlackEventHandleServiceImpl @Inject() (
     backlogRepository: BacklogRepository,
     storeRepository: StoreRepository
@@ -53,10 +57,9 @@ case class SlackEventHandleServiceImpl @Inject() (
   private final val PROJECT_ID = "projectID"
   private final val ISSUE_TYPE_ID = "issueTypeId"
 
-  /*
-   * === Slackから受け取ったイベントをハンドリングする処理 開始===
+  /* acceptCreateIssueRequest start
+   *
    */
-
   override def acceptCreateIssueRequest: MessageShortcutHandler = (req, ctx) =>
     {
       // 会話のURLをStoreへ保存
@@ -91,99 +94,6 @@ case class SlackEventHandleServiceImpl @Inject() (
       ctx.ack()
     }
 
-  override def postIssueInfoReqToSlack: BlockActionHandler = (req, ctx) => {
-    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
-      req.getPayload.getTeam.getId,
-      req.getPayload.getUser.getId
-    )
-    val projectId = req.getPayload.getView.getState.getValues
-      .get(SELECT_PROJECT_BLOCK)
-      .get(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
-      .getSelectedOption
-      .getValue
-    ctx
-      .client()
-      .viewsUpdate((r: ViewsUpdateRequestBuilder) => {
-        getInputIssueInfoViewBuilder(
-          r,
-          req,
-          getIssueTypes(backlogAuthInfo, projectId)
-        )
-      })
-    ctx.ack()
-  }
-
-  override def registrationAuthInfoToStore: ViewSubmissionHandler =
-    (req, ctx) => {
-      // 認証情報を保存
-      createRegistrationAuthInfo(req, ctx)
-      val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
-        req.getPayload.getTeam.getId,
-        req.getPayload.getUser.getId
-      )
-      val response = ViewSubmissionResponse
-        .builder()
-        .responseAction("update")
-        .view(getSelectProjectView(getProjectOptions(backlogAuthInfo)))
-        .build()
-      ctx.ack(response)
-    }
-
-  override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) =>
-    {
-      val getViewValues = req.getPayload.getView.getState.getValues
-      val projectId =
-        getViewValues
-          .get(SELECT_ISSUE_TYPE_BLOCK)
-          .get(SELECT_ISSUE_TYPE_ACTION)
-          .getSelectedOption
-          .getValue
-      val issueTitle = getViewValues
-        .get(SELECT_ISSUE_TITLE_BLOCK)
-        .get(SELECT_ISSUE_TITLE_ACTION)
-        .getValue
-
-      val map = projectId
-        .split(",")
-        .map(_.split(":"))
-        .map { case Array(k, v) => (k, v) }
-        .toMap
-
-      val messageLink = storeRepository.getMostRecentMessageLink(
-        req.getPayload.getTeam.getId,
-        req.getPayload.getUser.getId
-      )
-
-      val createIssueParams = backlogRepository.getCreateIssueParams(
-        map(PROJECT_ID),
-        issueTitle,
-        map(ISSUE_TYPE_ID).toInt,
-        messageLink
-      )
-      val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
-        req.getPayload.getTeam.getId,
-        req.getPayload.getUser.getId
-      )
-
-      val url =
-        backlogRepository.createIssue(createIssueParams, backlogAuthInfo)
-
-      val response = ViewSubmissionResponse
-        .builder()
-        .responseAction("update")
-        .view(getCreatedIssueInfoView(url))
-        .build();
-      ctx.ack(response)
-    }
-
-  /*
-   * === Slackから受け取ったイベントをハンドリングする処理 終了===
-   */
-
-  /*
-   * === private method 開始===
-   */
-
   private def createMostRecentMessageLink(
       req: MessageShortcutRequest,
       ctx: MessageShortcutContext
@@ -206,80 +116,6 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
   }
 
-  private def createRegistrationAuthInfo(
-      req: ViewSubmissionRequest,
-      ctx: ViewSubmissionContext
-  ): Unit = {
-    def getUser = req.getPayload.getUser
-    val apiKey = req.getPayload.getView.getState.getValues
-      .get(INPUT_API_KEY_BLOCK)
-      .get(INPUT_API_KEY_ACTION)
-      .getValue
-    val spaceId = req.getPayload.getView.getState.getValues
-      .get(INPUT_SPACE_ID_BLOCK)
-      .get(INPUT_SPACE_ID_ACTION)
-      .getValue
-    // TODO: 登録する前に以下で認証情報の確認
-    //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
-    storeRepository.createBacklogAuthInfo(
-      getUser.getTeamId,
-      getUser.getId,
-      apiKey,
-      spaceId
-    )
-  }
-
-  private def getInputIssueInfoViewBuilder(
-      r: ViewsUpdateRequestBuilder,
-      req: BlockActionRequest,
-      options: util.List[OptionObject]
-  ): ViewsUpdateRequestBuilder = {
-    r.view(getInputIssueInfoView(options)).viewId(req.getPayload.getView.getId)
-  }
-
-  private def getInputIssueInfoView(options: util.List[OptionObject]): View = {
-    View
-      .builder()
-      .`type`("modal")
-      .callbackId(SlackEventTypes.RegistrationIssueToBacklog.typeName)
-      .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
-      .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
-      .submit(
-        viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) =>
-          submit.`type`("plain_text").text("送信").emoji(true)
-        )
-      )
-      .blocks(
-        asBlocks(
-          input(i =>
-            i.element(
-              staticSelect(ss =>
-                ss.actionId(SELECT_ISSUE_TYPE_ACTION)
-                  .options(
-                    options
-                  )
-                  .placeholder(
-                    PlainTextObject.builder().text("課題種別を選択してください").build()
-                  )
-              )
-            ).label(PlainTextObject.builder().text("課題種別").build())
-              .blockId(SELECT_ISSUE_TYPE_BLOCK)
-          ),
-          input(i =>
-            i.element(
-              plainTextInput(pt =>
-                pt.actionId(SELECT_ISSUE_TITLE_ACTION)
-                  .placeholder(
-                    PlainTextObject.builder().text("タイトルを入力してください").build()
-                  )
-              )
-            ).label(PlainTextObject.builder().text("タイトル").build())
-              .blockId(SELECT_ISSUE_TITLE_BLOCK)
-          )
-        )
-      )
-      .build()
-  }
   private def getSelectProjectViewBuilder(
       r: ViewsOpenRequestBuilder,
       req: MessageShortcutRequest,
@@ -287,28 +123,6 @@ case class SlackEventHandleServiceImpl @Inject() (
   ): ViewsOpenRequestBuilder = {
     r.triggerId(req.getPayload.getTriggerId)
       .view(getSelectProjectView(options))
-  }
-  private def getSelectProjectView(options: util.List[OptionObject]): View = {
-    View
-      .builder()
-      .`type`("modal")
-      .callbackId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
-      .title(viewTitle(vt => vt.`type`("plain_text").text("プロジェクトを選択")))
-      .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
-      .blocks(
-        asBlocks(
-          section(s =>
-            s.accessory(
-              staticSelect(s =>
-                s.actionId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
-                  .options(options)
-              )
-            ).text(PlainTextObject.builder().text("プロジェクトを選択してください").build())
-              .blockId(SELECT_PROJECT_BLOCK)
-          )
-        )
-      )
-      .build()
   }
 
   private def getInputAuthInfoViewBuilder(
@@ -363,16 +177,73 @@ case class SlackEventHandleServiceImpl @Inject() (
         )
       )
   }
+  /*
+   *
+   * acceptCreateIssueRequest end */
 
-  private def getCreatedIssueInfoView(url: String): View = {
+  /* registrationAuthInfoToStore start
+   *
+   */
+  override def registrationAuthInfoToStore: ViewSubmissionHandler =
+    (req, ctx) => {
+      // 認証情報を保存
+      createRegistrationAuthInfo(req)
+      val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
+        req.getPayload.getTeam.getId,
+        req.getPayload.getUser.getId
+      )
+      val response = ViewSubmissionResponse
+        .builder()
+        .responseAction("update")
+        .view(getSelectProjectView(getProjectOptions(backlogAuthInfo)))
+        .build()
+      ctx.ack(response)
+    }
+
+  private def createRegistrationAuthInfo(req: ViewSubmissionRequest): Unit = {
+    def getUser = req.getPayload.getUser
+    val apiKey = req.getPayload.getView.getState.getValues
+      .get(INPUT_API_KEY_BLOCK)
+      .get(INPUT_API_KEY_ACTION)
+      .getValue
+    val spaceId = req.getPayload.getView.getState.getValues
+      .get(INPUT_SPACE_ID_BLOCK)
+      .get(INPUT_SPACE_ID_ACTION)
+      .getValue
+    // TODO: 登録する前に以下で認証情報の確認
+    //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
+    storeRepository.createBacklogAuthInfo(
+      getUser.getTeamId,
+      getUser.getId,
+      apiKey,
+      spaceId
+    )
+  }
+  /*
+   *
+   * registrationAuthInfoToStore end */
+
+  /* acceptCreateIssueRequest & registrationAuthInfoToStore common private methods start
+   *
+   */
+  private def getSelectProjectView(options: util.List[OptionObject]): View = {
     View
       .builder()
       .`type`("modal")
-      .title(viewTitle(vt => vt.`type`("plain_text").text("課題の登録に成功しました")))
+      .callbackId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
+      .title(viewTitle(vt => vt.`type`("plain_text").text("プロジェクトを選択")))
       .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
       .blocks(
         asBlocks(
-          section(s => s.text(markdownText(s"$url")))
+          section(s =>
+            s.accessory(
+              staticSelect(s =>
+                s.actionId(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
+                  .options(options)
+              )
+            ).text(PlainTextObject.builder().text("プロジェクトを選択してください").build())
+              .blockId(SELECT_PROJECT_BLOCK)
+          )
         )
       )
       .build()
@@ -395,6 +266,34 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
     options
   }
+  /*
+   *
+   * acceptCreateIssueRequest & registrationAuthInfoToStore common private methods end */
+
+  /* postIssueInfoReqToSlack start
+   *
+   */
+  override def postIssueInfoReqToSlack: BlockActionHandler = (req, ctx) => {
+    val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
+      req.getPayload.getTeam.getId,
+      req.getPayload.getUser.getId
+    )
+    val projectId = req.getPayload.getView.getState.getValues
+      .get(SELECT_PROJECT_BLOCK)
+      .get(SlackEventTypes.PostIssueInfoReqToSlack.typeName)
+      .getSelectedOption
+      .getValue
+    ctx
+      .client()
+      .viewsUpdate((r: ViewsUpdateRequestBuilder) => {
+        getInputIssueInfoViewBuilder(
+          r,
+          req,
+          getIssueTypes(backlogAuthInfo, projectId)
+        )
+      })
+    ctx.ack()
+  }
 
   private def getIssueTypes(
       authInfoEntity: BacklogAuthInfoParams,
@@ -416,7 +315,126 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
     options
   }
+
+  private def getInputIssueInfoViewBuilder(
+      r: ViewsUpdateRequestBuilder,
+      req: BlockActionRequest,
+      options: util.List[OptionObject]
+  ): ViewsUpdateRequestBuilder = {
+    r.view(getInputIssueInfoView(options)).viewId(req.getPayload.getView.getId)
+  }
+
+  private def getInputIssueInfoView(options: util.List[OptionObject]): View = {
+    View
+      .builder()
+      .`type`("modal")
+      .callbackId(SlackEventTypes.RegistrationIssueToBacklog.typeName)
+      .title(viewTitle(vt => vt.`type`("plain_text").text("課題を登録する")))
+      .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
+      .submit(
+        viewSubmit((submit: ViewSubmit.ViewSubmitBuilder) =>
+          submit.`type`("plain_text").text("送信").emoji(true)
+        )
+      )
+      .blocks(
+        asBlocks(
+          input(i =>
+            i.element(
+              staticSelect(ss =>
+                ss.actionId(SELECT_ISSUE_TYPE_ACTION)
+                  .options(
+                    options
+                  )
+                  .placeholder(
+                    PlainTextObject.builder().text("課題種別を選択してください").build()
+                  )
+              )
+            ).label(PlainTextObject.builder().text("課題種別").build())
+              .blockId(SELECT_ISSUE_TYPE_BLOCK)
+          ),
+          input(i =>
+            i.element(
+              plainTextInput(pt =>
+                pt.actionId(SELECT_ISSUE_TITLE_ACTION)
+                  .placeholder(
+                    PlainTextObject.builder().text("タイトルを入力してください").build()
+                  )
+              )
+            ).label(PlainTextObject.builder().text("タイトル").build())
+              .blockId(SELECT_ISSUE_TITLE_BLOCK)
+          )
+        )
+      )
+      .build()
+  }
   /*
-   * === private method 終了===
+   *
+   * postIssueInfoReqToSlack end */
+
+  /* registrationIssueToBacklog start
+   *
    */
+  override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) =>
+    {
+      val getViewValues = req.getPayload.getView.getState.getValues
+      val projectId =
+        getViewValues
+          .get(SELECT_ISSUE_TYPE_BLOCK)
+          .get(SELECT_ISSUE_TYPE_ACTION)
+          .getSelectedOption
+          .getValue
+      val issueTitle = getViewValues
+        .get(SELECT_ISSUE_TITLE_BLOCK)
+        .get(SELECT_ISSUE_TITLE_ACTION)
+        .getValue
+
+      val map = projectId
+        .split(",")
+        .map(_.split(":"))
+        .map { case Array(k, v) => (k, v) }
+        .toMap
+
+      val messageLink = storeRepository.getMostRecentMessageLink(
+        req.getPayload.getTeam.getId,
+        req.getPayload.getUser.getId
+      )
+
+      val createIssueParams = backlogRepository.getCreateIssueParams(
+        map(PROJECT_ID),
+        issueTitle,
+        map(ISSUE_TYPE_ID).toInt,
+        messageLink
+      )
+      val backlogAuthInfo = storeRepository.getBacklogAuthInfo(
+        req.getPayload.getTeam.getId,
+        req.getPayload.getUser.getId
+      )
+
+      val url =
+        backlogRepository.createIssue(createIssueParams, backlogAuthInfo)
+
+      val response = ViewSubmissionResponse
+        .builder()
+        .responseAction("update")
+        .view(getCreatedIssueInfoView(url))
+        .build();
+      ctx.ack(response)
+    }
+
+  private def getCreatedIssueInfoView(url: String): View = {
+    View
+      .builder()
+      .`type`("modal")
+      .title(viewTitle(vt => vt.`type`("plain_text").text("課題の登録に成功しました")))
+      .close(viewClose(c => c.`type`("plain_text").text("閉じる")))
+      .blocks(
+        asBlocks(
+          section(s => s.text(markdownText(s"$url")))
+        )
+      )
+      .build()
+  }
+  /*
+   *
+   * registrationIssueToBacklog end*/
 }
