@@ -2,89 +2,108 @@ package endpoint.impl
 
 import com.slack.api.bolt.context.builtin.MessageShortcutContext
 import com.slack.api.bolt.request.builtin.MessageShortcutRequest
-import com.slack.api.methods.request.chat.ChatPostEphemeralRequest
-import com.slack.api.model.block.Blocks.{asBlocks, divider, section}
-import com.slack.api.model.block.composition.BlockCompositions.{
-  asOptions,
-  markdownText,
-  option
-}
-import com.slack.api.model.block.composition.PlainTextObject
-import com.slack.api.model.block.element.BlockElements.staticSelect
-import params.BacklogAuthInfoParams
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito
-import org.mockito.Mockito.{times, verify, when}
+import org.mockito.Mockito._
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.mockito.MockitoSugar
+import params.BacklogAuthInfoParams
+import repository.client.FireStoreClientImpl
 import repository.impl.{BacklogRepositoryImpl, FireStoreRepositoryImpl}
 import service.impl.SlackEventHandleServiceImpl
 
 // TODO: 再実装
 class SlackEventHandleServiceImplSpec extends AnyFunSuite with MockitoSugar {
-  test("createIssueMessageShortcutHandler 認証情報ありの場合") {
-    //
-    // 事前準備
-    //
+  test("acceptCreateIssueRequest 認証情報ありの場合") {
     val req = mock[MessageShortcutRequest](Mockito.RETURNS_DEEP_STUBS)
+    when(
+      req.getPayload.getTeam.getId
+    ) thenReturn "teamId"
+    when(
+      req.getPayload.getUser.getId
+    ) thenReturn "userId"
     val ctx = mock[MessageShortcutContext](Mockito.RETURNS_DEEP_STUBS)
-    val request = ChatPostEphemeralRequest
-      .builder()
-      .blocks(
-        asBlocks(
-          section(s => s.text(markdownText("*課題についていくつか選択してください:*"))),
-          divider(),
-          section(s =>
-            s.text(markdownText("*Static Select:*"))
-              .accessory(
-                staticSelect(ss =>
-                  ss.actionId("registration-issue-to-backlog") // TODO: 変更する
-                    .options(
-                      asOptions( // TODO: Backlogから取得したユーザーのプロジェクト一覧を仕込む
-                        option(option =>
-                          option.text(
-                            PlainTextObject.builder().text("プロジェクト1").build()
-                          )
-                        ),
-                        option(option =>
-                          option.text(
-                            PlainTextObject.builder().text("プロジェクト2").build()
-                          )
-                        )
-                      )
-                    )
-                )
-              )
-          )
-        )
-      )
-    // SlackEventHandleServiceImpl生成
-    val backlogRepository =
-      mock[BacklogRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
-//    when(backlogRepository.getProjects(mock[BacklogAuthInfoEntity])) thenReturn()
-    val storeRepository =
-      mock[FireStoreRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
+    val fireStoreClientImpl = mock[FireStoreClientImpl]
+    val storeRepository = mock[FireStoreRepositoryImpl](
+      withSettings.useConstructor(fireStoreClientImpl)
+    )
     when(
       storeRepository.getBacklogAuthInfo(
-        req.getPayload.getChannel.getId,
-        req.getPayload.getUser.getId
+        "teamId",
+        "userId"
       )
-    ) thenReturn (BacklogAuthInfoParams("spaceId", "apiKey"))
-    val slackEventHandleService =
-      SlackEventHandleServiceImpl(backlogRepository, storeRepository)()
+    ) thenReturn BacklogAuthInfoParams("space-id", "apiKey")
+    val backlogRepository =
+      mock[BacklogRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
 
     //
     // 処理実施
     //
-    slackEventHandleService.acceptCreateIssueRequest(req, ctx)
+    SlackEventHandleServiceImpl(backlogRepository, storeRepository)()
+      .acceptCreateIssueRequest(req, ctx)
 
     //
     // 結果確認
     //
-    verify(ctx.client, times(1)).chatPostEphemeral(request.build())
     verify(storeRepository, times(1)).getBacklogAuthInfo(
-      req.getPayload.getChannel.getId,
-      req.getPayload.getUser.getId
+      "teamId",
+      "userId"
     )
-    verify(ctx, times(1)).ack
+    verify(storeRepository, times(1)).createMostRecentMessageLink(
+      any(),
+      any(),
+      any()
+    )
+    verify(backlogRepository, times(1)).getProjects(
+      BacklogAuthInfoParams("space-id", "apiKey")
+    )
+    verify(ctx, times(1)).ack()
   }
+
+  test("acceptCreateIssueRequest 認証情報なしの場合") {
+    val req = mock[MessageShortcutRequest](Mockito.RETURNS_DEEP_STUBS)
+    when(
+      req.getPayload.getTeam.getId
+    ) thenReturn "teamId"
+    when(
+      req.getPayload.getUser.getId
+    ) thenReturn "userId"
+    val ctx = mock[MessageShortcutContext](Mockito.RETURNS_DEEP_STUBS)
+    val fireStoreClientImpl = mock[FireStoreClientImpl]
+    val storeRepository = mock[FireStoreRepositoryImpl](
+      withSettings.useConstructor(fireStoreClientImpl)
+    )
+    when(
+      storeRepository.getBacklogAuthInfo(
+        "teamId",
+        "userId"
+      )
+    ) thenReturn BacklogAuthInfoParams("", "")
+    val backlogRepository =
+      mock[BacklogRepositoryImpl](Mockito.RETURNS_DEEP_STUBS)
+
+    //
+    // 処理実施
+    //
+    SlackEventHandleServiceImpl(backlogRepository, storeRepository)()
+      .acceptCreateIssueRequest(req, ctx)
+
+    //
+    // 結果確認
+    //
+    verify(storeRepository, times(1)).getBacklogAuthInfo(
+      "teamId",
+      "userId"
+    )
+    verify(storeRepository, times(1)).createMostRecentMessageLink(
+      any(),
+      any(),
+      any()
+    )
+    verify(backlogRepository, never()).getProjects(
+      BacklogAuthInfoParams("space-id", "apiKey")
+    )
+    verify(ctx, times(1)).ack()
+  }
+// TODO postIssueInfoReqToSlack、registrationAuthInfoToStore、registrationIssueToBacklogテスト
 }

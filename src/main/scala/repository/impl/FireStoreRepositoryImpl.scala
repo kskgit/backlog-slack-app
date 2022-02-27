@@ -52,6 +52,7 @@ case class FireStoreRepositoryImpl @Inject() (
     // FireStoreへ渡す値を加工、JavaのhashMapを渡す必要あり
     val tmpAuthInfo = new util.HashMap[String, String] {
       {
+        // TODO: 保存時に暗号化したい
         put(SPACE_ID, spaceId)
         put(APIKEY, apiKey)
       }

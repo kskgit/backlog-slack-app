@@ -1,15 +1,12 @@
 package repository.impl
 
-import params.BacklogAuthInfoParams
 import org.mockito.Mockito.{times, verify, when}
-import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatestplus.mockito.MockitoSugar
-
-import java.util
-//import org.mockito.Mockito.when
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatestplus.mockito.MockitoSugar
+import params.BacklogAuthInfoParams
 import repository.client.FireStoreClientImpl
+
+import java.util
 
 class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
   test("getBacklogAuthInfo 認証情報登録有り") {

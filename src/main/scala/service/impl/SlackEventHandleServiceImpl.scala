@@ -35,8 +35,6 @@ import service.SlackEventHandleService
 import java.util
 import javax.inject.Inject
 
-// TODO: requestはそれぞれのイベントに依存するため、そこから値を取り出す処理はここで実装に統一
-// TODO: 最初だけ"We had some trouble connecting. Try again?" が表示される
 case class SlackEventHandleServiceImpl @Inject() (
     backlogRepository: BacklogRepository,
     storeRepository: StoreRepository
@@ -73,13 +71,14 @@ case class SlackEventHandleServiceImpl @Inject() (
           )
       } else {
         // プロジェクト選択用のViewを返す
+        val projects = getProjectOptions(backlogAuthInfo)
         ctx
           .client()
           .viewsOpen((r: ViewsOpenRequestBuilder) => {
             getSelectProjectViewBuilder(
               r,
               req,
-              getProjectOptions(backlogAuthInfo)
+              projects
             )
           })
       }
@@ -159,11 +158,10 @@ case class SlackEventHandleServiceImpl @Inject() (
         req.getPayload.getTeam.getId,
         req.getPayload.getUser.getId
       )
-      // TODO: 認証情報が無い場合のエラー処理
-      // TODO: 認証情報をFireStoreからの取得へ変更
+
       val url =
         backlogRepository.createIssue(createIssueParams, backlogAuthInfo)
-      // TODO: 登録失敗した場合のエラー処理
+
       val response = ViewSubmissionResponse
         .builder()
         .responseAction("update")
