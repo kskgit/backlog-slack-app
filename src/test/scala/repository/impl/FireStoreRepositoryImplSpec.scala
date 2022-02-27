@@ -37,7 +37,7 @@ class FireStoreRepositoryImplSpec extends AnyFunSuite with MockitoSugar {
         "teamId",
         "userId"
       )
-    ) thenReturn null
+    ) thenReturn ""
 
     val result = FireStoreRepositoryImpl(fireStoreClientImpl)
       .getBacklogAuthInfo("teamId", "userId")
