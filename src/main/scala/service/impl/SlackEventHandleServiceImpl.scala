@@ -426,7 +426,7 @@ case class SlackEventHandleServiceImpl @Inject() (
    */
   override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) =>
     {
-//      todo 課題登録処理を切り分ける
+//      todo  課題登録処理をprivate methodへ切り分ける
       val getViewValues = req.getPayload.getView.getState.getValues
       val projectId =
         getViewValues

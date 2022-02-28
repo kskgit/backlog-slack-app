@@ -2,7 +2,7 @@ package config
 
 import com.google.inject.AbstractModule
 import endpoint.EndPoint
-import endpoint.impl.EndPointSocketMode
+import endpoint.impl.EndPointImpl
 import repository.impl.{BacklogRepositoryImpl, FireStoreRepositoryImpl}
 import repository.{BacklogRepository, StoreRepository}
 import service.SlackEventHandleService
@@ -11,7 +11,7 @@ import service.impl.SlackEventHandleServiceImpl
 /** DIの対応関係を登録する */
 class DIModuleConfig extends AbstractModule {
   override protected def configure(): Unit = {
-    bind(classOf[EndPoint]).to(classOf[EndPointSocketMode])
+    bind(classOf[EndPoint]).to(classOf[EndPointImpl])
     bind(classOf[SlackEventHandleService]).to(
       classOf[SlackEventHandleServiceImpl]
     )

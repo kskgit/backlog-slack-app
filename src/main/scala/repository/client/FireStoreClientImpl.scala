@@ -25,8 +25,8 @@ case class FireStoreClientImpl() {
    *}
    */
 
-  /*
-   *  === クライアント初期化用処理 開始===
+  /* initialize client start
+   *
    */
   private val credentials = GoogleCredentials.fromStream(
     getClass.getClassLoader.getResourceAsStream(
@@ -37,8 +37,8 @@ case class FireStoreClientImpl() {
     FirebaseOptions.builder().setCredentials(credentials).build
   FirebaseApp.initializeApp(options)
   /*
-   *  === クライアント初期化用処理 終了===
-   */
+   *
+   * initialize client  end */
 
   private val fireStore: Firestore = FirestoreClient.getFirestore
 

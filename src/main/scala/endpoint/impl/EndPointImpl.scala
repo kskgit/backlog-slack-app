@@ -1,6 +1,7 @@
 package endpoint.impl
 
 import com.slack.api.bolt.jetty.SlackAppServer
+import com.slack.api.bolt.socket_mode.SocketModeApp
 import com.slack.api.bolt.{App, AppConfig}
 import constant.SlackEventTypes
 import endpoint.EndPoint
@@ -9,7 +10,7 @@ import service.SlackEventHandleService
 import java.util
 import javax.inject.Inject
 
-case class EndPointSocketMode @Inject() (
+case class EndPointImpl @Inject() (
     slackEventHandleService: SlackEventHandleService
 ) extends EndPoint {
   override def startServer(): Unit = {
@@ -44,11 +45,12 @@ case class EndPointSocketMode @Inject() (
         )
       }
     }
-    val server = new SlackAppServer(map, sys.env("PORT").toInt)
+//    val server = new SlackAppServer(map, sys.env("PORT").toInt)
+//    server.start()
 
     //to dev
-    // new SocketModeApp(app).start()
+    // TODO: 環境変数での切り替え
+    new SocketModeApp(app).start()
 
-    server.start()
   }
 }
