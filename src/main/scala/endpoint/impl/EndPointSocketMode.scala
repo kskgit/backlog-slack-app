@@ -1,11 +1,12 @@
 package endpoint.impl
 
+import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.bolt.{App, AppConfig}
-import com.slack.api.bolt.socket_mode.SocketModeApp
+import constant.SlackEventTypes
 import endpoint.EndPoint
 import service.SlackEventHandleService
-import constant.SlackEventTypes
 
+import java.util
 import javax.inject.Inject
 
 case class EndPointSocketMode @Inject() (
@@ -32,7 +33,22 @@ case class EndPointSocketMode @Inject() (
       SlackEventTypes.RegistrationIssueToBacklog.typeName,
       slackEventHandleService.registrationIssueToBacklog
     )
+    val oauthApp = new App().asOAuthApp(true)
 
-    new SocketModeApp(app).start()
+    val map = new util.HashMap[String, App] {
+      {
+        put("/slack/events", app) // POST /slack/events (Slack API からのリクエストのみ)
+        put(
+          "/slack/oauth",
+          oauthApp
+        )
+      }
+    }
+    val server = new SlackAppServer(map, sys.env("PORT").toInt)
+
+    //to dev
+    // new SocketModeApp(app).start()
+
+    server.start()
   }
 }
