@@ -91,6 +91,11 @@ case class SlackEventHandleServiceImpl @Inject() (
       ctx.ack()
     }
 
+  /** SlackのメッセージリンクをStoreへ保存する
+    *
+    * @param req
+    * @param ctx
+    */
   private def createMostRecentMessageLink(
       req: MessageShortcutRequest,
       ctx: MessageShortcutContext
@@ -113,6 +118,13 @@ case class SlackEventHandleServiceImpl @Inject() (
     )
   }
 
+  /** プロジェクト選択用のViewBuilderを作成する
+    *
+    * @param r
+    * @param req
+    * @param options
+    * @return プロジェクト選択用のViewBuilder
+    */
   private def getSelectProjectViewBuilder(
       r: ViewsOpenRequestBuilder,
       req: MessageShortcutRequest,
@@ -122,6 +134,12 @@ case class SlackEventHandleServiceImpl @Inject() (
       .view(getSelectProjectView(options))
   }
 
+  /** 認証情報入力用のViewBuilderを作成する
+    *
+    * @param r
+    * @param req
+    * @return 認証情報入力用のViewBuilder
+    */
   private def getInputAuthInfoViewBuilder(
       r: ViewsOpenRequestBuilder,
       req: MessageShortcutRequest
@@ -197,6 +215,10 @@ case class SlackEventHandleServiceImpl @Inject() (
       ctx.ack(response)
     }
 
+  /** 認証情報をStoreへ保存する
+    *
+    * @param req
+    */
   private def createRegistrationAuthInfo(req: ViewSubmissionRequest): Unit = {
     def getUser = req.getPayload.getUser
     val apiKey = req.getPayload.getView.getState.getValues
@@ -223,6 +245,12 @@ case class SlackEventHandleServiceImpl @Inject() (
   /* acceptCreateIssueRequest & registrationAuthInfoToStore common private methods start
    *
    */
+
+  /** プロジェクト選択用のViewを作成する
+    *
+    * @param options
+    * @return プロジェクト選択用のView
+    */
   private def getSelectProjectView(options: util.List[OptionObject]): View = {
     View
       .builder()
@@ -246,6 +274,11 @@ case class SlackEventHandleServiceImpl @Inject() (
       .build()
   }
 
+  /** プロジェクトの一覧を取得する
+    *
+    * @param authInfoEntity
+    * @return
+    */
   private def getProjectOptions(
       authInfoEntity: BacklogAuthInfoParams
   ): util.ArrayList[OptionObject] = {
@@ -292,6 +325,12 @@ case class SlackEventHandleServiceImpl @Inject() (
     ctx.ack()
   }
 
+  /** 課題の一覧を取得する
+    *
+    * @param authInfoEntity
+    * @param projectId
+    * @return
+    */
   private def getIssueTypes(
       authInfoEntity: BacklogAuthInfoParams,
       projectId: String
@@ -313,6 +352,13 @@ case class SlackEventHandleServiceImpl @Inject() (
     options
   }
 
+  /** 課題情報入力用のViewBuilderを作成する
+    *
+    * @param r
+    * @param req
+    * @param options
+    * @return 課題情報入力用のViewBuilder
+    */
   private def getInputIssueInfoViewBuilder(
       r: ViewsUpdateRequestBuilder,
       req: BlockActionRequest,
@@ -321,6 +367,13 @@ case class SlackEventHandleServiceImpl @Inject() (
     r.view(getInputIssueInfoView(options)).viewId(req.getPayload.getView.getId)
   }
 
+  /** 課題情報入力用のViewを作成する
+    *
+    * @param r
+    * @param req
+    * @param options
+    * @return 課題情報入力用のView
+    */
   private def getInputIssueInfoView(options: util.List[OptionObject]): View = {
     View
       .builder()
@@ -373,6 +426,7 @@ case class SlackEventHandleServiceImpl @Inject() (
    */
   override def registrationIssueToBacklog: ViewSubmissionHandler = (req, ctx) =>
     {
+//      todo 課題登録処理を切り分ける
       val getViewValues = req.getPayload.getView.getState.getValues
       val projectId =
         getViewValues
@@ -418,6 +472,11 @@ case class SlackEventHandleServiceImpl @Inject() (
       ctx.ack(response)
     }
 
+  /** 課題登録後の情報を表示するViewを作成する
+    *
+    * @param url
+    * @return 課題登録後の情報を表示するView
+    */
   private def getCreatedIssueInfoView(url: String): View = {
     View
       .builder()
