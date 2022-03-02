@@ -21,6 +21,10 @@ Slack-to-Backlog は SlackのメッセージをBacklogの課題に登録出来�
 ### 動作イメージ
 https://nulab-exam.backlog.jp/alias/wiki/1025473
 
+# サービスの構成
+### 構成図
+https://nulab-exam.backlog.jp/alias/wiki/1027873
+
 # 主なパッケージの役割分担
 全体的にDIを用いてパッケージ間は疎結合となるよう工夫しました
 
