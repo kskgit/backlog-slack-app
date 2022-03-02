@@ -229,8 +229,10 @@ case class SlackEventHandleServiceImpl @Inject() (
       .get(INPUT_SPACE_ID_BLOCK)
       .get(INPUT_SPACE_ID_ACTION)
       .getValue
-    // TODO: 登録する前に以下で認証情報の確認
-    //  https://developer.nulab.com/ja/docs/backlog/api/2/get-own-user/#
+
+    // 登録前にプロジェクト情報でキーが有効か確認
+    backlogRepository.getProjects(BacklogAuthInfoParams(spaceId, apiKey))
+
     storeRepository.createBacklogAuthInfo(
       getUser.getTeamId,
       getUser.getId,
