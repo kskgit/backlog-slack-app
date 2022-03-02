@@ -45,12 +45,12 @@ case class EndPointImpl @Inject() (
         )
       }
     }
-//    val server = new SlackAppServer(map, sys.env("PORT").toInt)
-//    server.start()
+    val server = new SlackAppServer(map, sys.env("PORT").toInt)
+    server.start()
 
     //to dev
     // TODO: 環境変数での切り替え
-    new SocketModeApp(app).start()
+//    new SocketModeApp(app).start()
 
   }
 }
